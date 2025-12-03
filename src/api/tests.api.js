@@ -11,3 +11,7 @@ export function addQuestion(testId, payload) {
 export function getTest(id) {
   return axios.get(`/tests/${id}`).then(r => r.data)
 }
+
+export function updateTest(id, payload) {
+  return axios.put(`/tests/${id}`, payload).then(r => r.data)
+}

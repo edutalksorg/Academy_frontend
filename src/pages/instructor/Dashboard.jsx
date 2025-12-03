@@ -17,17 +17,27 @@ export default function InstructorDashboard() {
 
   async function fetchDashboardData() {
     try {
+      console.log('Fetching dashboard data...');
       const [statsRes, testsRes] = await Promise.all([
         api.get('/instructor/stats'),
         api.get('/tests/my-tests')
       ]);
 
+      console.log('Stats response:', statsRes);
+      console.log('Tests response:', testsRes);
+
       if (statsRes.data?.data) {
+        console.log('Setting stats:', statsRes.data.data);
         setStats(statsRes.data.data);
+      } else {
+        console.warn('No stats data received');
       }
 
       if (testsRes.data?.data) {
+        console.log('Setting tests:', testsRes.data.data);
         setMyTests(testsRes.data.data.slice(0, 5)); // Show only 5 recent tests
+      } else {
+        console.warn('No tests data received');
       }
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
@@ -118,8 +128,8 @@ export default function InstructorDashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${test.status === 'published'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800'
                     }`}>
                     {test.status}
                   </span>

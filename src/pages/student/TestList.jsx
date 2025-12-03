@@ -64,38 +64,66 @@ export default function TestList() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tests.map((test) => (
-            <Card key={test.id} hover className="flex flex-col">
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-gray-900">{test.title}</h3>
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                    Published
-                  </span>
+          {tests.map((test) => {
+            const now = new Date();
+            const start = test.startTime ? new Date(test.startTime) : null;
+            const end = test.endTime ? new Date(test.endTime) : null;
+
+            let status = 'active';
+            let statusText = 'Active';
+            let statusColor = 'bg-green-100 text-green-800';
+
+            if (start && now < start) {
+              status = 'upcoming';
+              statusText = `Starts: ${start.toLocaleString()}`;
+              statusColor = 'bg-yellow-100 text-yellow-800';
+            } else if (end && now > end) {
+              status = 'ended';
+              statusText = 'Ended';
+              statusColor = 'bg-red-100 text-red-800';
+            } else if (end) {
+              statusText = `Ends: ${end.toLocaleString()}`;
+            }
+
+            return (
+              <Card key={test.id} hover className="flex flex-col">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">{test.title}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColor}`}>
+                      {statusText}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-sm mb-4">{test.description || 'No description provided'}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <div className="flex items-center gap-1">
+                      <span>📋</span>
+                      <span>{test.Questions?.length || 0} questions</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>⏱️</span>
+                      <span>{test.timeLimit} min</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🎯</span>
+                      <span>{test.totalMarks} marks</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-gray-600 text-sm mb-4">{test.description || 'No description provided'}</p>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <span>📋</span>
-                    <span>{test.Questions?.length || 0} questions</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>⏱️</span>
-                    <span>{test.timeLimit} min</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>🎯</span>
-                    <span>{test.totalMarks} marks</span>
-                  </div>
-                </div>
-              </div>
-              <Link to={`/student/tests/${test.id}`} className="w-full">
-                <Button variant="primary" fullWidth>
-                  Start Test
-                </Button>
-              </Link>
-            </Card>
-          ))}
+                {status === 'active' ? (
+                  <Link to={`/student/tests/${test.id}`} className="w-full">
+                    <Button variant="primary" fullWidth>
+                      Start Test
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="secondary" fullWidth disabled>
+                    {status === 'upcoming' ? 'Not Started Yet' : 'Test Ended'}
+                  </Button>
+                )}
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

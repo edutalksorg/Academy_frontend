@@ -103,11 +103,7 @@ export default function Login() {
         Sign In
       </Button>
 
-      <div className="text-center text-sm text-gray-600 mt-4">
-        <p>Demo Credentials:</p>
-        <p className="text-xs mt-1">SuperAdmin: admin@system.com / Admin@123</p>
-        <p className="text-xs">Student: student@college.edu / Student@123</p>
-      </div>
+
     </form>
   );
 }

@@ -19,7 +19,9 @@ export default function CollegeStudents() {
     try {
       const res = await api.get('/tpo/students', { params: { q } });
       if (res.data?.data) {
-        setStudents(res.data.data);
+        // Handle findAndCountAll response format
+        const data = res.data.data.rows || res.data.data;
+        setStudents(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to load students:', err);
@@ -54,8 +56,8 @@ export default function CollegeStudents() {
         const avg = attempts.reduce((sum, a) => sum + (a.totalScore || 0), 0) / attempts.length;
         return (
           <span className={`font-semibold ${avg >= 70 ? 'text-green-600' :
-              avg >= 50 ? 'text-yellow-600' :
-                'text-red-600'
+            avg >= 50 ? 'text-yellow-600' :
+              'text-red-600'
             }`}>
             {avg.toFixed(1)}%
           </span>
@@ -67,8 +69,8 @@ export default function CollegeStudents() {
       accessor: 'status',
       render: (row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.status === 'active'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
+          ? 'bg-green-100 text-green-800'
+          : 'bg-gray-100 text-gray-800'
           }`}>
           {row.status}
         </span>

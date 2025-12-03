@@ -12,7 +12,10 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
   const [collegeId, setCollegeId] = useState('');
+  const [collegeName, setCollegeName] = useState(''); // For TPO
+  const [collegeCode, setCollegeCode] = useState(''); // For TPO
   const [colleges, setColleges] = useState([]);
+  const [selectedCollege, setSelectedCollege] = useState(null); // For student to show college code
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState('success'); // 'success' or 'error'
   const [errors, setErrors] = useState({});
@@ -43,9 +46,23 @@ export default function Register() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Invalid email format';
     if (!password) e.password = 'Password is required';
     else if (password.length < 6) e.password = 'Password must be at least 6 characters';
-    if ((role === 'tpo' || role === 'instructor') && !collegeId) {
-      e.collegeId = 'College selection is required for TPO and Instructor roles';
+
+    // TPO validation
+    if (role === 'tpo') {
+      if (!collegeName) e.collegeName = 'College name is required';
+      if (!collegeCode) e.collegeCode = 'College code is required';
     }
+
+    // Instructor validation
+    if (role === 'instructor' && !collegeId) {
+      e.collegeId = 'College selection is required for Instructor role';
+    }
+
+    // Student validation
+    if (role === 'student' && !collegeId) {
+      e.collegeId = 'College selection is required';
+    }
+
     return e;
   }
 
@@ -62,9 +79,17 @@ export default function Register() {
         name,
         email,
         password,
-        role,
-        collegeId: collegeId || undefined
+        role
       };
+
+      // Add college fields based on role
+      if (role === 'tpo') {
+        payload.collegeName = collegeName;
+        payload.collegeCode = collegeCode;
+      } else if (role === 'instructor' || role === 'student') {
+        payload.collegeId = collegeId || undefined;
+      }
+
       const res = await auth.register(payload);
 
       if (res && res.success) {
@@ -108,21 +133,12 @@ export default function Register() {
 
       {message && (
         <div className={`px-4 py-3 rounded-lg border ${messageType === 'success'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+          ? 'bg-green-50 border-green-200 text-green-700'
+          : 'bg-red-50 border-red-200 text-red-700'
           }`}>
           {message}
         </div>
       )}
-
-      <FormInput
-        label="Full Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="John Doe"
-        error={errors.name}
-        required
-      />
 
       <FormInput
         label="Email Address"
@@ -153,7 +169,28 @@ export default function Register() {
         required
       />
 
-      {(role === 'tpo' || role === 'instructor') && (
+      {role === 'tpo' && (
+        <>
+          <FormInput
+            label="College Name"
+            value={collegeName}
+            onChange={(e) => setCollegeName(e.target.value)}
+            placeholder="Enter your college name"
+            error={errors.collegeName}
+            required
+          />
+          <FormInput
+            label="College Code"
+            value={collegeCode}
+            onChange={(e) => setCollegeCode(e.target.value)}
+            placeholder="Enter college code (e.g., ABC123)"
+            error={errors.collegeCode}
+            required
+          />
+        </>
+      )}
+
+      {role === 'instructor' && (
         <Select
           label="College"
           name="collegeId"
@@ -167,15 +204,37 @@ export default function Register() {
       )}
 
       {role === 'student' && (
-        <Select
-          label="College (Optional)"
-          name="collegeId"
-          value={collegeId}
-          onChange={(e) => setCollegeId(e.target.value)}
-          options={collegeOptions}
-          placeholder="Select your college"
-        />
+        <>
+          <Select
+            label="College"
+            name="collegeId"
+            value={collegeId}
+            onChange={(e) => {
+              setCollegeId(e.target.value);
+              const college = colleges.find(c => c.id.toString() === e.target.value);
+              setSelectedCollege(college);
+            }}
+            options={collegeOptions}
+            placeholder="Select your college"
+            error={errors.collegeId}
+            required
+          />
+          {selectedCollege && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm">
+              <strong>College Code:</strong> {selectedCollege.collegeCode}
+            </div>
+          )}
+        </>
       )}
+
+      <FormInput
+        label={selectedCollege ? `Full Name (${selectedCollege.collegeCode} - )` : "Full Name"}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Enter your name"
+        error={errors.name}
+        required
+      />
 
       <Button
         type="submit"
@@ -195,4 +254,3 @@ export default function Register() {
     </form>
   );
 }
-

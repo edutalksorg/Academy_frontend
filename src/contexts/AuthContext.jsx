@@ -6,6 +6,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const raw = localStorage.getItem('auth');
@@ -19,6 +20,7 @@ export function AuthProvider({ children }) {
         setToken(null)
       }
     }
+    setLoading(false)
   }, [])
 
   async function login(email, password) {
@@ -42,10 +44,10 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('auth')
     setUser(null)
     setToken(null)
-    try { window.location.href = '/login' } catch (e) {}
+    try { window.location.href = '/login' } catch (e) { }
   }
 
-  return <AuthContext.Provider value={{ user, token, login, logout, register }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)
