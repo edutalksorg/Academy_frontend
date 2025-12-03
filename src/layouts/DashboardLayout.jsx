@@ -15,6 +15,8 @@ export default function DashboardLayout({ children }) {
           { to: '/superadmin/pending', label: 'Pending Users', icon: '⏳' },
           { to: '/superadmin/colleges', label: 'Colleges', icon: '🏫' },
           { to: '/superadmin/reports', label: 'Global Reports', icon: '📈' },
+          { to: '/superadmin/tpo-activity', label: 'TPO Activity', icon: '🕒' },
+          { to: '/superadmin/instructor-insights', label: 'Instructor Insights', icon: '👨‍🏫' },
         ];
       case 'tpo':
         return [
@@ -90,8 +92,8 @@ export default function DashboardLayout({ children }) {
                 key={link.to}
                 to={link.to}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(link.to)
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
                   }`}
               >
                 <span className="text-xl">{link.icon}</span>

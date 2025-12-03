@@ -40,11 +40,17 @@ export function AuthProvider({ children }) {
     return res
   }
 
-  function logout() {
-    localStorage.removeItem('auth')
-    setUser(null)
-    setToken(null)
-    try { window.location.href = '/login' } catch (e) { }
+  async function logout() {
+    try {
+      await authApi.logout()
+    } catch (e) {
+      console.error('Logout error', e)
+    } finally {
+      localStorage.removeItem('auth')
+      setUser(null)
+      setToken(null)
+      try { window.location.href = '/login' } catch (e) { }
+    }
   }
 
   return <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>{children}</AuthContext.Provider>

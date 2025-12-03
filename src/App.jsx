@@ -4,27 +4,25 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import AuthLayout from './layouts/AuthLayout'
 import DashboardLayout from './layouts/DashboardLayout'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import SuperadminDashboard from './pages/superadmin/Dashboard'
 import PendingUsers from './pages/superadmin/PendingUsers'
+import Colleges from './pages/superadmin/Colleges'
+import GlobalReports from './pages/superadmin/GlobalReports'
+import TpoActivity from './pages/superadmin/TpoActivity'
+import InstructorInsights from './pages/superadmin/InstructorInsights'
 import TpoDashboard from './pages/tpo/Dashboard'
 import CollegeReport from './pages/tpo/CollegeReport'
 import CollegeStudents from './pages/tpo/CollegeStudents'
 import InstructorDashboard from './pages/instructor/Dashboard'
-import TestBuilder from './pages/instructor/TestBuilder'
 import InstructorTestList from './pages/instructor/TestList'
+import TestBuilder from './pages/instructor/TestBuilder'
+import TestPreview from './pages/TestPreview'
 import StudentDashboard from './pages/student/Dashboard'
 import TestList from './pages/student/TestList'
 import TestRunner from './pages/student/TestRunner'
 import AttemptHistory from './pages/student/AttemptHistory'
-
-function Protected({ children, role }) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) return <Navigate to="/forbidden" replace />;
-  return children;
-}
 
 export default function App() {
   return (
@@ -43,6 +41,10 @@ export default function App() {
 
         <Route path="/superadmin" element={<DashboardLayout><ProtectedRoute role="superadmin"><SuperadminDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/superadmin/pending" element={<DashboardLayout><ProtectedRoute role="superadmin"><PendingUsers /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/superadmin/colleges" element={<DashboardLayout><ProtectedRoute role="superadmin"><Colleges /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/superadmin/reports" element={<DashboardLayout><ProtectedRoute role="superadmin"><GlobalReports /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/superadmin/tpo-activity" element={<DashboardLayout><ProtectedRoute role="superadmin"><TpoActivity /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/superadmin/instructor-insights" element={<DashboardLayout><ProtectedRoute role="superadmin"><InstructorInsights /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo" element={<DashboardLayout><ProtectedRoute role="tpo"><TpoDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo/students" element={<DashboardLayout><ProtectedRoute role="tpo"><CollegeStudents /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo/report" element={<DashboardLayout><ProtectedRoute role="tpo"><CollegeReport /></ProtectedRoute></DashboardLayout>} />
@@ -54,6 +56,7 @@ export default function App() {
         <Route path="/student/tests" element={<DashboardLayout><ProtectedRoute role="student"><TestList /></ProtectedRoute></DashboardLayout>} />
         <Route path="/student/tests/:id" element={<DashboardLayout><ProtectedRoute role="student"><TestRunner /></ProtectedRoute></DashboardLayout>} />
         <Route path="/student/attempts" element={<DashboardLayout><ProtectedRoute role="student"><AttemptHistory /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/test/:id/preview" element={<DashboardLayout><ProtectedRoute><TestPreview /></ProtectedRoute></DashboardLayout>} />
 
       </Routes>
     </AuthProvider>

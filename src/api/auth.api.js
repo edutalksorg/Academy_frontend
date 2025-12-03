@@ -7,3 +7,7 @@ export function register(payload) {
 export function login(payload) {
   return axios.post('/auth/login', payload).then(r => r.data)
 }
+
+export function logout() {
+  return axios.post('/auth/logout').then(r => r.data)
+}

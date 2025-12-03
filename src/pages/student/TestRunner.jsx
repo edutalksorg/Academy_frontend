@@ -4,6 +4,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { ConfirmModal } from '../../components/Modal';
+import Watermark from '../../components/Watermark';
 import { getTest } from '../../api/tests.api';
 import { startTest, submitAttempt } from '../../api/attempts.api';
 
@@ -16,7 +17,91 @@ export default function TestRunner() {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [showWarningModal, setShowWarningModal] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('showWarningModal state changed:', showWarningModal);
+  }, [showWarningModal]);
+
+  // Anti-screenshot and anti-cheat measures
+  useEffect(() => {
+    if (!attempt) return; // Only apply during active test
+
+    // Disable right-click
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Disable keyboard shortcuts for screenshots and copying
+    const handleKeyDown = (e) => {
+      // Prevent Print Screen, Ctrl+S, Ctrl+P, Ctrl+C, etc.
+      if (
+        e.key === 'PrintScreen' ||
+        (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'c')) ||
+        (e.metaKey && (e.key === 's' || e.key === 'p' || e.key === 'c'))
+      ) {
+        e.preventDefault();
+        alert('⚠️ Screenshots and copying are disabled during the test.\n\nThis action has been logged and will be reported to your instructor.');
+
+        // Clear clipboard if possible
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText('Screenshot attempt detected during test').catch(() => { });
+        }
+
+        return false;
+      }
+    };
+
+    // Additional Print Screen detection via keyup
+    const handleKeyUp = (e) => {
+      if (e.key === 'PrintScreen') {
+        // Clear clipboard after Print Screen
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText('EduTask - Screenshot attempt detected during test by ' + (JSON.parse(localStorage.getItem('auth'))?.user?.name || 'Student')).catch(() => { });
+        }
+      }
+    };
+
+    // Detect tab/window switching
+    const handleVisibilityChange = () => {
+      console.log('Visibility changed. Hidden:', document.hidden);
+
+      if (document.hidden) {
+        console.warn('⚠️ Student switched tabs/windows during test');
+
+        // Record tab switch in backend
+        if (attempt?.id) {
+          import('../../api/attempts.api').then(({ recordTabSwitch }) => {
+            recordTabSwitch(attempt.id).catch(err => console.error('Failed to record tab switch:', err));
+          });
+        }
+      } else {
+        // User returned to the tab
+        console.log('User returned. Showing warning modal.');
+        setShowWarningModal(true);
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Disable text selection
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    };
+  }, [attempt]);
 
   useEffect(() => {
     loadTest();
@@ -49,11 +134,27 @@ export default function TestRunner() {
     }
   }
 
+  // Fisher-Yates shuffle algorithm
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
   async function onStart() {
     try {
       const res = await startTest(id);
       setAttempt(res.data);
       setTimeLeft(test.timeLimit * 60); // Convert minutes to seconds
+
+      // Shuffle questions for this student
+      if (test.Questions && test.Questions.length > 0) {
+        const shuffledQuestions = shuffleArray(test.Questions);
+        setTest({ ...test, Questions: shuffledQuestions });
+      }
     } catch (err) {
       alert(err?.response?.data?.message || 'Failed to start test');
     }
@@ -112,7 +213,7 @@ export default function TestRunner() {
               <div className="text-gray-700">Your Score</div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
               <div className="bg-green-50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-green-600">{result.correctAnswers || 0}</div>
                 <div className="text-sm text-gray-600">Correct</div>
@@ -124,6 +225,12 @@ export default function TestRunner() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-gray-600">{test.Questions?.length || 0}</div>
                 <div className="text-sm text-gray-600">Total</div>
+              </div>
+              <div className="bg-yellow-50 rounded-lg p-4">
+                <div className={`text-2xl font-bold ${result.tabSwitchCount > 0 ? 'text-red-600' : 'text-yellow-600'}`}>
+                  {result.tabSwitchCount || 0}
+                </div>
+                <div className="text-sm text-gray-600">Tab Switches</div>
               </div>
             </div>
 
@@ -137,6 +244,69 @@ export default function TestRunner() {
             </div>
           </div>
         </Card>
+
+        {/* Detailed Question Review */}
+        {result.questionResults && result.questionResults.length > 0 && (
+          <Card>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Question Review</h3>
+            <div className="space-y-4">
+              {result.questionResults.map((qResult, index) => (
+                <div
+                  key={qResult.questionId}
+                  className={`border-2 rounded-lg p-4 ${qResult.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+                    }`}
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold ${qResult.isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}>
+                      {qResult.isCorrect ? '✓' : '✗'}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        Question {index + 1}: {qResult.questionText}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <div className="ml-11 space-y-2">
+                    {qResult.options.map((option) => {
+                      const isSelected = option.id === qResult.selectedOptionId;
+                      const isCorrectOption = option.id === qResult.correctOptionId;
+
+                      return (
+                        <div
+                          key={option.id}
+                          className={`p-3 rounded-lg border-2 ${isCorrectOption
+                            ? 'border-green-500 bg-green-100'
+                            : isSelected && !qResult.isCorrect
+                              ? 'border-red-500 bg-red-100'
+                              : 'border-gray-200 bg-white'
+                            }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-900">{option.text}</span>
+                            <div className="flex gap-2">
+                              {isSelected && (
+                                <span className="text-xs font-medium px-2 py-1 rounded bg-blue-100 text-blue-800">
+                                  Your Answer
+                                </span>
+                              )}
+                              {isCorrectOption && (
+                                <span className="text-xs font-medium px-2 py-1 rounded bg-green-500 text-white">
+                                  Correct Answer
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
       </div>
     );
   }
@@ -188,6 +358,9 @@ export default function TestRunner() {
 
   return (
     <div className="space-y-6">
+      {/* Watermark for anti-cheating */}
+      <Watermark />
+
       {/* Timer and Progress Header */}
       <Card className="sticky top-20 z-10">
         <div className="flex justify-between items-center">
@@ -229,8 +402,8 @@ export default function TestRunner() {
                     <label
                       key={opt.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${answers[q.id] === opt.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
                         }`}
                     >
                       <input
@@ -285,6 +458,35 @@ export default function TestRunner() {
         confirmText="Submit"
         variant="success"
       />
+      {/* Warning Modal for Tab Switching */}
+      {/* Warning Modal for Tab Switching */}
+      {showWarningModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border-l-4 border-red-500">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <span className="text-2xl">⚠️</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">Warning: Tab Switch Detected</h3>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              You switched away from the test window. This action has been recorded and will be reported to your instructor.
+              <br /><br />
+              <strong>Please stay on this page until you submit the test.</strong>
+            </p>
+
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={() => setShowWarningModal(false)}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              I Understand, Return to Test
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

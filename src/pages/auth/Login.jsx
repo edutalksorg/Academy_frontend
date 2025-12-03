@@ -32,9 +32,9 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await auth.login(email, password);
-      if (res && auth.user) {
+      if (res && res.user) {
         // Role-based redirect
-        const role = auth.user.role;
+        const role = res.user.role;
         switch (role) {
           case 'superadmin':
             navigate('/superadmin');

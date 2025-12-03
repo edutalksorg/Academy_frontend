@@ -65,6 +65,24 @@ export default function CollegeStudents() {
       }
     },
     {
+      header: 'Tab Switches',
+      render: (row) => {
+        const attempts = row.Attempts || [];
+        const totalSwitches = attempts.reduce((sum, a) => sum + (a.tabSwitchCount || 0), 0);
+
+        if (totalSwitches === 0) return <span className="text-green-600 font-medium">0 ✓</span>;
+
+        return (
+          <div className="flex items-center gap-1">
+            <span className={`font-bold ${totalSwitches > 2 ? 'text-red-600' : 'text-yellow-600'}`}>
+              {totalSwitches}
+            </span>
+            {totalSwitches > 0 && <span title="Tab switching detected">⚠️</span>}
+          </div>
+        );
+      }
+    },
+    {
       header: 'Status',
       accessor: 'status',
       render: (row) => (
