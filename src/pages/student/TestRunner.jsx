@@ -198,18 +198,23 @@ export default function TestRunner() {
 
   // Show result screen
   if (result) {
+    // Calculate percentage score
+    const scorePercentage = test.totalMarks > 0
+      ? Math.round((result.totalScore / test.totalMarks) * 100)
+      : 0;
+
     return (
       <div className="space-y-6">
         <Card>
           <div className="text-center py-8">
             <div className="text-6xl mb-4">
-              {result.totalScore >= 70 ? '🎉' : result.totalScore >= 50 ? '👍' : '📚'}
+              {scorePercentage >= 70 ? '🎉' : scorePercentage >= 50 ? '👍' : '📚'}
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Test Completed!</h2>
             <p className="text-gray-600 mb-6">Here are your results</p>
 
             <div className="inline-block bg-blue-50 rounded-lg p-6 mb-6">
-              <div className="text-5xl font-bold text-blue-600 mb-2">{result.totalScore}%</div>
+              <div className="text-5xl font-bold text-blue-600 mb-2">{scorePercentage}%</div>
               <div className="text-gray-700">Your Score</div>
             </div>
 

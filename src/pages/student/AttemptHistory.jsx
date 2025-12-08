@@ -36,10 +36,17 @@ export default function AttemptHistory() {
       setStats(null);
       return;
     }
-    const totalScore = data.reduce((sum, a) => sum + (a.totalScore || 0), 0);
-    const avgScore = totalScore / data.length;
-    const highestScore = Math.max(...data.map(a => a.totalScore || 0));
-    const lowestScore = Math.min(...data.map(a => a.totalScore || 0));
+
+    // Calculate percentage for each attempt
+    const percentages = data.map(a => {
+      const totalMarks = a.Test?.totalMarks || 100;
+      return (a.totalScore / totalMarks) * 100;
+    });
+
+    const totalPercentage = percentages.reduce((sum, p) => sum + p, 0);
+    const avgScore = totalPercentage / data.length;
+    const highestScore = Math.max(...percentages);
+    const lowestScore = Math.min(...percentages);
 
     setStats({ avgScore, highestScore, lowestScore, totalAttempts: data.length });
   }
@@ -66,29 +73,40 @@ export default function AttemptHistory() {
     {
       header: 'Score',
       accessor: 'totalScore',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <span className={`text-2xl font-bold ${row.totalScore >= 70 ? 'text-green-600' :
-            row.totalScore >= 50 ? 'text-yellow-600' :
-              'text-red-600'
-            }`}>
-            {row.totalScore}%
-          </span>
-        </div>
-      )
+      render: (row) => {
+        const totalMarks = row.Test?.totalMarks || 100;
+        const percentage = Math.round((row.totalScore / totalMarks) * 100);
+
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`text-2xl font-bold ${percentage >= 70 ? 'text-green-600' :
+              percentage >= 50 ? 'text-yellow-600' :
+                'text-red-600'
+              }`}>
+              {percentage}%
+            </span>
+            <span className="text-xs text-gray-500">({row.totalScore}/{totalMarks})</span>
+          </div>
+        );
+      }
     },
     {
       header: 'Performance',
-      render: (row) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${row.totalScore >= 70 ? 'bg-green-100 text-green-800' :
-          row.totalScore >= 50 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
-          }`}>
-          {row.totalScore >= 70 ? 'Excellent' :
-            row.totalScore >= 50 ? 'Good' :
-              'Needs Improvement'}
-        </span>
-      )
+      render: (row) => {
+        const totalMarks = row.Test?.totalMarks || 100;
+        const percentage = Math.round((row.totalScore / totalMarks) * 100);
+
+        return (
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${percentage >= 70 ? 'bg-green-100 text-green-800' :
+            percentage >= 50 ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }`}>
+            {percentage >= 70 ? 'Excellent' :
+              percentage >= 50 ? 'Good' :
+                'Needs Improvement'}
+          </span>
+        );
+      }
     },
     {
       header: 'Status',

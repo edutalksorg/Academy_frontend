@@ -14,6 +14,7 @@ export default function Register() {
   const [collegeId, setCollegeId] = useState('');
   const [collegeName, setCollegeName] = useState(''); // For TPO
   const [collegeCode, setCollegeCode] = useState(''); // For TPO
+  const [rollNumber, setRollNumber] = useState(''); // For Student
   const [colleges, setColleges] = useState([]);
   const [selectedCollege, setSelectedCollege] = useState(null); // For student to show college code
   const [message, setMessage] = useState(null);
@@ -59,8 +60,9 @@ export default function Register() {
     }
 
     // Student validation
-    if (role === 'student' && !collegeId) {
-      e.collegeId = 'College selection is required';
+    if (role === 'student') {
+      if (!collegeId) e.collegeId = 'College selection is required';
+      if (!rollNumber) e.rollNumber = 'Roll Number is required';
     }
 
     return e;
@@ -88,6 +90,9 @@ export default function Register() {
         payload.collegeCode = collegeCode;
       } else if (role === 'instructor' || role === 'student') {
         payload.collegeId = collegeId || undefined;
+        if (role === 'student') {
+          payload.rollNumber = rollNumber;
+        }
       }
 
       const res = await auth.register(payload);
@@ -224,6 +229,14 @@ export default function Register() {
               <strong>College Code:</strong> {selectedCollege.collegeCode}
             </div>
           )}
+          <FormInput
+            label="Roll Number"
+            value={rollNumber}
+            onChange={(e) => setRollNumber(e.target.value)}
+            placeholder="Enter your college roll number"
+            error={errors.rollNumber}
+            required
+          />
         </>
       )}
 

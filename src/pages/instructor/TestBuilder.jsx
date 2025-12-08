@@ -137,21 +137,32 @@ export default function TestBuilder() {
         </div>
 
         <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-medium">Questions</h3>
-            <button type="button" onClick={addQuestionBlock} className="text-blue-600 text-sm">+ Add question</button>
-          </div>
-          {questions.length === 0 && <div className="text-sm text-gray-500">No questions yet</div>}
-          {questions.map((q, idx) => (
-            <div key={idx} className={q.id ? 'opacity-75 pointer-events-none' : ''}>
-              {q.id && <div className="text-xs text-gray-500 mb-1">Existing Question (Cannot edit)</div>}
-              <QuestionEditor value={q} onChange={(val) => updateQuestion(idx, val)} onRemove={() => removeQuestion(idx)} />
+          <div className="sticky top-0 bg-white z-10 pb-3 border-b mb-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium">Questions</h3>
+              <button
+                type="button"
+                onClick={addQuestionBlock}
+                className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+              >
+                <span className="text-lg">+</span> Add question
+              </button>
             </div>
-          ))}
+          </div>
+
+          <div className="space-y-4">
+            {questions.length === 0 && <div className="text-sm text-gray-500 text-center py-8">No questions yet. Click "Add question" to get started.</div>}
+            {questions.map((q, idx) => (
+              <div key={idx} className={q.id ? 'opacity-75 pointer-events-none' : ''}>
+                {q.id && <div className="text-xs text-gray-500 mb-1">Existing Question (Cannot edit)</div>}
+                <QuestionEditor value={q} onChange={(val) => updateQuestion(idx, val)} onRemove={() => removeQuestion(idx)} />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex gap-3">
-          <button type="submit" className="bg-primary text-white px-4 py-2 rounded" disabled={saving}>{saving ? 'Saving...' : (isEdit ? 'Update Test' : 'Save Test')}</button>
+          <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors" disabled={saving}>{saving ? 'Saving...' : (isEdit ? 'Update Test' : 'Save Test')}</button>
         </div>
       </form>
     </div>

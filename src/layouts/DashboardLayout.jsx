@@ -1,6 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  FileBarChart,
+  Clock,
+  GraduationCap,
+  Menu,
+  X,
+  LogOut,
+  ChevronRight,
+  FileText,
+  Shield,
+  PieChart
+} from 'lucide-react';
 
 export default function DashboardLayout({ children }) {
   const { user, logout } = useAuth();
@@ -11,30 +26,31 @@ export default function DashboardLayout({ children }) {
     switch (user?.role) {
       case 'superadmin':
         return [
-          { to: '/superadmin', label: 'Dashboard', icon: '📊' },
-          { to: '/superadmin/pending', label: 'Pending Users', icon: '⏳' },
-          { to: '/superadmin/colleges', label: 'Colleges', icon: '🏫' },
-          { to: '/superadmin/reports', label: 'Global Reports', icon: '📈' },
-          { to: '/superadmin/tpo-activity', label: 'TPO Activity', icon: '🕒' },
-          { to: '/superadmin/instructor-insights', label: 'Instructor Insights', icon: '👨‍🏫' },
+          { to: '/superadmin', label: 'Dashboard', icon: LayoutDashboard },
+          { to: '/superadmin/pending', label: 'Pending Users', icon: Clock },
+          { to: '/superadmin/colleges', label: 'Colleges', icon: Building2 },
+          { to: '/superadmin/reports', label: 'Global Reports', icon: FileBarChart },
+          { to: '/superadmin/tpo-activity', label: 'TPO Activity', icon: Shield },
+          { to: '/superadmin/instructor-insights', label: 'Instructor Insights', icon: GraduationCap },
         ];
       case 'tpo':
         return [
-          { to: '/tpo', label: 'Dashboard', icon: '📊' },
-          { to: '/tpo/students', label: 'Students', icon: '👥' },
-          { to: '/tpo/report', label: 'College Report', icon: '📈' },
+          { to: '/tpo', label: 'Dashboard', icon: LayoutDashboard },
+          { to: '/tpo/students', label: 'Students', icon: Users },
+          { to: '/tpo/manage-students', label: 'Manage Access', icon: Shield },
+          { to: '/tpo/report', label: 'College Report', icon: FileBarChart },
         ];
       case 'instructor':
         return [
-          { to: '/instructor', label: 'Dashboard', icon: '📊' },
-          { to: '/instructor/tests/new', label: 'Create Test', icon: '➕' },
-          { to: '/instructor/tests', label: 'My Tests', icon: '📝' },
+          { to: '/instructor', label: 'Dashboard', icon: LayoutDashboard },
+          { to: '/instructor/tests/new', label: 'Create Test', icon: FileText },
+          { to: '/instructor/tests', label: 'My Tests', icon: PieChart },
         ];
       case 'student':
         return [
-          { to: '/student', label: 'Dashboard', icon: '📊' },
-          { to: '/student/tests', label: 'Available Tests', icon: '📝' },
-          { to: '/student/attempts', label: 'My Results', icon: '📈' },
+          { to: '/student', label: 'Dashboard', icon: LayoutDashboard },
+          { to: '/student/tests', label: 'Available Tests', icon: FileText },
+          { to: '/student/attempts', label: 'My Results', icon: FileBarChart },
         ];
       default:
         return [];
@@ -42,78 +58,106 @@ export default function DashboardLayout({ children }) {
   };
 
   const navLinks = getNavigationLinks();
-
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="mr-4 text-gray-600 hover:text-gray-900 lg:hidden"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <h1 className="text-xl font-bold text-blue-600">College Placement</h1>
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
+      {/* Sidebar */}
+      <aside
+        className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } fixed lg:relative lg:translate-x-0 z-30 w-72 bg-slate-900 h-full transition-transform duration-300 ease-in-out flex flex-col shadow-xl`}
+      >
+        {/* Sidebar Header */}
+        <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-600 p-2 rounded-lg">
+              <GraduationCap className="w-6 h-6 text-white" />
             </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:block text-sm text-gray-700">
-                <span className="font-medium">{user?.name}</span>
-                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                  {user?.role?.toUpperCase()}
-                </span>
-              </div>
-              <button
-                onClick={logout}
-                className="text-sm text-red-600 hover:text-red-700 font-medium"
-              >
-                Logout
-              </button>
+            <span className="text-xl font-bold text-white tracking-tight">Academy</span>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden ml-auto text-slate-400 hover:text-white"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <div className="mb-6 px-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Menu</p>
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const active = isActive(link.to);
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`group flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 mb-1 ${active
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                    <span className="font-medium">{link.label}</span>
+                  </div>
+                  {active && <ChevronRight className="w-4 h-4 text-emerald-200" />}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* User Profile Footer */}
+        <div className="p-4 bg-slate-950 border-t border-slate-800">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
+              {user?.name?.charAt(0) || 'U'}
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+              <p className="text-xs text-slate-400 truncate capitalize">{user?.role}</p>
+            </div>
+            <button
+              onClick={logout}
+              className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside
-          className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            } fixed lg:static lg:translate-x-0 z-20 w-64 bg-white h-[calc(100vh-4rem)] border-r border-gray-200 transition-transform duration-300 ease-in-out`}
-        >
-          <nav className="p-4 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(link.to)
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-              >
-                <span className="text-xl">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </aside>
+      {/* Main Content Wrapper */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-white h-16 border-b border-gray-200 flex items-center px-4 justify-between z-20">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="font-bold text-gray-900">Academy</span>
+          <div className="w-6"></div> {/* Spacer for alignment */}
+        </header>
 
         {/* Overlay for mobile */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-20 lg:hidden backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          {children}
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

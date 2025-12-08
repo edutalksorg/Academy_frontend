@@ -15,6 +15,7 @@ import InstructorInsights from './pages/superadmin/InstructorInsights'
 import TpoDashboard from './pages/tpo/Dashboard'
 import CollegeReport from './pages/tpo/CollegeReport'
 import CollegeStudents from './pages/tpo/CollegeStudents'
+import ManageStudents from './pages/tpo/ManageStudents'
 import InstructorDashboard from './pages/instructor/Dashboard'
 import InstructorTestList from './pages/instructor/TestList'
 import TestBuilder from './pages/instructor/TestBuilder'
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/superadmin/instructor-insights" element={<DashboardLayout><ProtectedRoute role="superadmin"><InstructorInsights /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo" element={<DashboardLayout><ProtectedRoute role="tpo"><TpoDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo/students" element={<DashboardLayout><ProtectedRoute role="tpo"><CollegeStudents /></ProtectedRoute></DashboardLayout>} />
+        <Route path="/tpo/manage-students" element={<DashboardLayout><ProtectedRoute role="tpo"><ManageStudents /></ProtectedRoute></DashboardLayout>} />
         <Route path="/tpo/report" element={<DashboardLayout><ProtectedRoute role="tpo"><CollegeReport /></ProtectedRoute></DashboardLayout>} />
         <Route path="/instructor" element={<DashboardLayout><ProtectedRoute role="instructor"><InstructorDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/instructor/tests" element={<DashboardLayout><ProtectedRoute role="instructor"><InstructorTestList /></ProtectedRoute></DashboardLayout>} />

@@ -30,12 +30,19 @@ export default function CollegeReport() {
       if (dateFrom) params.dateFrom = dateFrom;
       if (dateTo) params.dateTo = dateTo;
 
+      console.log('Loading report with params:', params);
       const res = await api.get('/tpo/college-report', { params });
+      console.log('Report API response:', res.data);
+
       if (res.data?.data) {
+        console.log('Setting report data:', res.data.data);
         setReport(res.data.data);
+      } else {
+        console.warn('No data in response');
       }
     } catch (err) {
       console.error('Failed to load report:', err);
+      console.error('Error details:', err.response?.data);
     } finally {
       setLoading(false);
     }
