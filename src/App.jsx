@@ -4,7 +4,7 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import AuthLayout from './layouts/AuthLayout'
 import DashboardLayout from './layouts/DashboardLayout'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import SuperadminDashboard from './pages/superadmin/Dashboard'
 import PendingUsers from './pages/superadmin/PendingUsers'
@@ -24,6 +24,28 @@ import StudentDashboard from './pages/student/Dashboard'
 import TestList from './pages/student/TestList'
 import TestRunner from './pages/student/TestRunner'
 import AttemptHistory from './pages/student/AttemptHistory'
+import Home from './pages/Home'
+
+function RoleBasedRedirect() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <div className="p-4 text-center">Loading...</div>
+  if (!user) return <Navigate to="/login" replace />
+
+  // Redirect based on user role
+  switch (user.role) {
+    case 'superadmin':
+      return <Navigate to="/superadmin" replace />
+    case 'tpo':
+      return <Navigate to="/tpo" replace />
+    case 'instructor':
+      return <Navigate to="/instructor" replace />
+    case 'student':
+      return <Navigate to="/student" replace />
+    default:
+      return <Navigate to="/login" replace />
+  }
+}
 
 export default function App() {
   return (
@@ -34,11 +56,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
         </Route>
 
-        <Route path="/" element={<DashboardLayout>
-          <ProtectedRoute>
-            <div className="p-2">Select a dashboard from the menu</div>
-          </ProtectedRoute>
-        </DashboardLayout>} />
+        <Route path="/" element={<Home />} />
 
         <Route path="/superadmin" element={<DashboardLayout><ProtectedRoute role="superadmin"><SuperadminDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/superadmin/pending" element={<DashboardLayout><ProtectedRoute role="superadmin"><PendingUsers /></ProtectedRoute></DashboardLayout>} />

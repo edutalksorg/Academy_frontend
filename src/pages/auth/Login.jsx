@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormInput from '../../components/FormInput';
 import Button from '../../components/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,6 +12,29 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (auth.user && !auth.loading) {
+      const role = auth.user.role;
+      switch (role) {
+        case 'superadmin':
+          navigate('/superadmin', { replace: true });
+          break;
+        case 'tpo':
+          navigate('/tpo', { replace: true });
+          break;
+        case 'instructor':
+          navigate('/instructor', { replace: true });
+          break;
+        case 'student':
+          navigate('/student', { replace: true });
+          break;
+        default:
+          navigate('/', { replace: true });
+      }
+    }
+  }, [auth.user, auth.loading, navigate]);
 
   function validate() {
     const e = {};

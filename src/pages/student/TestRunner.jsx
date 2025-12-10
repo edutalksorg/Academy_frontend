@@ -199,8 +199,10 @@ export default function TestRunner() {
   // Show result screen
   if (result) {
     // Calculate percentage score
-    const scorePercentage = test.totalMarks > 0
-      ? Math.round((result.totalScore / test.totalMarks) * 100)
+    // Calculate percentage based on number of correct answers vs total questions
+    const totalQuestions = test.Questions?.length || 0;
+    const scorePercentage = totalQuestions > 0
+      ? Math.round((result.correctAnswers / totalQuestions) * 100)
       : 0;
 
     return (
@@ -367,7 +369,7 @@ export default function TestRunner() {
       <Watermark />
 
       {/* Timer and Progress Header */}
-      <Card className="sticky top-20 z-10">
+      <Card>
         <div className="flex justify-between items-center">
           <div>
             <h2 className="text-xl font-bold text-gray-900">{test.title}</h2>

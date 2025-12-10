@@ -93,8 +93,8 @@ export default function StudentDashboard() {
         ) : (
           <div className="space-y-3">
             {recentTests.map((attempt) => {
-              const totalMarks = attempt.Test?.totalMarks || 100;
-              const percentage = Math.round((attempt.totalScore / totalMarks) * 100);
+              const totalMaxScore = attempt.Test?.Questions?.length || attempt.Test?.totalMarks || 1;
+              const percentage = Math.round((attempt.totalScore / totalMaxScore) * 100);
 
               return (
                 <div key={attempt.id} className="flex justify-between items-center py-3 border-b last:border-b-0">

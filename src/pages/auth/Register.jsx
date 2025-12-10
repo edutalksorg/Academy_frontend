@@ -54,10 +54,7 @@ export default function Register() {
       if (!collegeCode) e.collegeCode = 'College code is required';
     }
 
-    // Instructor validation
-    if (role === 'instructor' && !collegeId) {
-      e.collegeId = 'College selection is required for Instructor role';
-    }
+    // Instructor validation - no college required
 
     // Student validation
     if (role === 'student') {
@@ -88,12 +85,11 @@ export default function Register() {
       if (role === 'tpo') {
         payload.collegeName = collegeName;
         payload.collegeCode = collegeCode;
-      } else if (role === 'instructor' || role === 'student') {
+      } else if (role === 'student') {
         payload.collegeId = collegeId || undefined;
-        if (role === 'student') {
-          payload.rollNumber = rollNumber;
-        }
+        payload.rollNumber = rollNumber;
       }
+      // Instructors don't need college during registration
 
       const res = await auth.register(payload);
 
@@ -195,18 +191,7 @@ export default function Register() {
         </>
       )}
 
-      {role === 'instructor' && (
-        <Select
-          label="College"
-          name="collegeId"
-          value={collegeId}
-          onChange={(e) => setCollegeId(e.target.value)}
-          options={collegeOptions}
-          placeholder="Select your college"
-          error={errors.collegeId}
-          required
-        />
-      )}
+      {/* Instructors don't need to select college during registration */}
 
       {role === 'student' && (
         <>

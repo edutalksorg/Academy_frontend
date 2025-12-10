@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 export default function AuthLayout() {
   const location = useLocation();
@@ -8,6 +9,13 @@ export default function AuthLayout() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-50 px-4">
       <div className="max-w-md w-full">
+        <Link
+          to="/"
+          className="fixed top-6 left-6 inline-flex items-center text-sm font-medium text-emerald-800 hover:text-emerald-600 transition-colors group z-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </Link>
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <div className="inline-block p-3 bg-emerald-600 rounded-full mb-3">

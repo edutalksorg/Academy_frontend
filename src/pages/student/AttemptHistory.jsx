@@ -39,8 +39,8 @@ export default function AttemptHistory() {
 
     // Calculate percentage for each attempt
     const percentages = data.map(a => {
-      const totalMarks = a.Test?.totalMarks || 100;
-      return (a.totalScore / totalMarks) * 100;
+      const totalMaxScore = a.Test?.Questions?.length || a.Test?.totalMarks || 1;
+      return (a.totalScore / totalMaxScore) * 100;
     });
 
     const totalPercentage = percentages.reduce((sum, p) => sum + p, 0);
@@ -74,8 +74,10 @@ export default function AttemptHistory() {
       header: 'Score',
       accessor: 'totalScore',
       render: (row) => {
-        const totalMarks = row.Test?.totalMarks || 100;
-        const percentage = Math.round((row.totalScore / totalMarks) * 100);
+        // Calculate total marks as sum of questions (assuming 1 mark each if totalMarks is 0 or invalid)
+        // Since we updated backend to return Questions, we can use that length
+        const totalMaxScore = row.Test?.Questions?.length || row.Test?.totalMarks || 1;
+        const percentage = Math.round((row.totalScore / totalMaxScore) * 100);
 
         return (
           <div className="flex items-center gap-2">
@@ -85,7 +87,7 @@ export default function AttemptHistory() {
               }`}>
               {percentage}%
             </span>
-            <span className="text-xs text-gray-500">({row.totalScore}/{totalMarks})</span>
+            <span className="text-xs text-gray-500">({row.totalScore}/{totalMaxScore})</span>
           </div>
         );
       }
@@ -93,8 +95,8 @@ export default function AttemptHistory() {
     {
       header: 'Performance',
       render: (row) => {
-        const totalMarks = row.Test?.totalMarks || 100;
-        const percentage = Math.round((row.totalScore / totalMarks) * 100);
+        const totalMaxScore = row.Test?.Questions?.length || row.Test?.totalMarks || 1;
+        const percentage = Math.round((row.totalScore / totalMaxScore) * 100);
 
         return (
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${percentage >= 70 ? 'bg-green-100 text-green-800' :
@@ -136,17 +138,17 @@ export default function AttemptHistory() {
           </Card>
           <Card variant="stat">
             <div className="text-3xl mb-2">📈</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.avgScore.toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-blue-600">{Math.round(stats.avgScore)}%</div>
             <div className="text-sm text-gray-600 mt-1">Average Score</div>
           </Card>
           <Card variant="stat">
             <div className="text-3xl mb-2">🏆</div>
-            <div className="text-2xl font-bold text-green-600">{stats.highestScore}%</div>
+            <div className="text-2xl font-bold text-green-600">{Math.round(stats.highestScore)}%</div>
             <div className="text-sm text-gray-600 mt-1">Highest Score</div>
           </Card>
           <Card variant="stat">
             <div className="text-3xl mb-2">📉</div>
-            <div className="text-2xl font-bold text-red-600">{stats.lowestScore}%</div>
+            <div className="text-2xl font-bold text-red-600">{Math.round(stats.lowestScore)}%</div>
             <div className="text-sm text-gray-600 mt-1">Lowest Score</div>
           </Card>
         </div>

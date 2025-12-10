@@ -106,7 +106,7 @@ export default function TestList() {
                     </div>
                     <div className="flex items-center gap-1">
                       <span>🎯</span>
-                      <span>{test.totalMarks} marks</span>
+                      <span>{test.totalMarks > 0 ? test.totalMarks : (test.Questions?.length || 0)} marks</span>
                     </div>
                   </div>
                 </div>
