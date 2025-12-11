@@ -21,7 +21,7 @@ jobs:
       - name: Install npm packages
         run: npm install
 
-      - name: Fix vite permission
+      - name: Fix vite permissions
         run: chmod +x node_modules/.bin/vite || true
 
       - name: Build frontend
@@ -32,39 +32,29 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ap-south-2
 
       - name: Generate version
         id: version
         run: |
           VERSION="v$(date +%Y%m%d%H%M%S)"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-      # -----------------------
-      # Upload immutable versioned build
-      # -----------------------
+
       - name: Upload versioned build
         run: |
           aws s3 sync dist/ s3://exam-frontend-production/${{ steps.version.outputs.version }}/
-      # -----------------------
-      # CLEAN + UPLOAD latest build (important)
-      # -----------------------
+
       - name: Clear latest folder
         run: aws s3 rm s3://exam-frontend-production/latest/ --recursive
 
-      - name: Upload new build to latest
+      - name: Upload latest build
         run: aws s3 sync dist/ s3://exam-frontend-production/latest/
 
-      # -----------------------
-      # Update releases.json
-      # -----------------------
       - name: Update releases.json
         run: |
           echo "{ \"latest\": \"${{ steps.version.outputs.version }}\" }" > releases.json
-          aws s3 cp releases.json s3://exam-frontend-production/releases.json \
-            --content-type application/json
-      # -----------------------
-      # CloudFront Invalidation
-      # -----------------------
+          aws s3 cp releases.json s3://exam-frontend-production/releases.json --content-type application/json
+
       - name: Invalidate CloudFront Cache
         env:
           CLOUDFRONT_DIST: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
