@@ -54,26 +54,10 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res = await auth.login(email, password);
-      if (res && res.user) {
-        // Role-based redirect
-        const role = res.user.role;
-        switch (role) {
-          case 'superadmin':
-            navigate('/superadmin');
-            break;
-          case 'tpo':
-            navigate('/tpo');
-            break;
-          case 'instructor':
-            navigate('/instructor');
-            break;
-          case 'student':
-            navigate('/student');
-            break;
-          default:
-            navigate('/');
-        }
+      const result = await auth.login(email, password);
+      if (result && result.user) {
+        // Save done in AuthContext; navigate to dashboard
+        navigate('/dashboard');
       }
     } catch (err) {
       const msg = err?.response?.data?.message || err?.message || 'Login failed. Please check your credentials.';

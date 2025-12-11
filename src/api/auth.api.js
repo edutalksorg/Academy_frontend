@@ -5,7 +5,8 @@ import axios from './axiosClient'
  */
 export const loginUser = async (email, password) => {
   const res = await axios.post('/auth/login', { email, password })
-  return res.data
+  // return full axios response so callers can access response.data.data
+  return res
 }
 
 /**

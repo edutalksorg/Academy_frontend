@@ -58,6 +58,9 @@ export default function App() {
 
         <Route path="/" element={<Home />} />
 
+        {/* Generic dashboard entry (redirects based on role) */}
+        <Route path="/dashboard" element={<RoleBasedRedirect />} />
+
         <Route path="/superadmin" element={<DashboardLayout><ProtectedRoute role="superadmin"><SuperadminDashboard /></ProtectedRoute></DashboardLayout>} />
         <Route path="/superadmin/pending" element={<DashboardLayout><ProtectedRoute role="superadmin"><PendingUsers /></ProtectedRoute></DashboardLayout>} />
         <Route path="/superadmin/colleges" element={<DashboardLayout><ProtectedRoute role="superadmin"><Colleges /></ProtectedRoute></DashboardLayout>} />

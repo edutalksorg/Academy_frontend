@@ -59,7 +59,8 @@ export default function TestRunner() {
       if (e.key === 'PrintScreen') {
         // Clear clipboard after Print Screen
         if (navigator.clipboard) {
-          navigator.clipboard.writeText('EduTask - Screenshot attempt detected during test by ' + (JSON.parse(localStorage.getItem('auth'))?.user?.name || 'Student')).catch(() => { });
+          const name = JSON.parse(localStorage.getItem('user'))?.name || 'Student'
+          navigator.clipboard.writeText('EduTask - Screenshot attempt detected during test by ' + name).catch(() => { });
         }
       }
     };
