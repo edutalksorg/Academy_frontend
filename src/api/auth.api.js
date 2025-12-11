@@ -1,47 +1,25 @@
-import axios from "axios";
+import axios from './axiosClient'
 
 /**
- * Login — uses VITE_API_BASE_URL and calls /auth/login
+ * Login — calls /auth/login on the shared axios client
  */
 export const loginUser = async (email, password) => {
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
-    { email, password },
-    {
-      headers: { "Content-Type": "application/json" },
-      withCredentials: false,
-    }
-  );
-
-  return response.data;
-};
+  const res = await axios.post('/auth/login', { email, password })
+  return res.data
+}
 
 /**
  * Register
  */
 export const registerUser = async (data) => {
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/auth/register`,
-    data,
-    {
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-
-  return response.data;
-};
+  const res = await axios.post('/auth/register', data)
+  return res.data
+}
 
 /**
  * Logout
  */
 export const logoutUser = async (token) => {
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_BASE_URL}/auth/logout`,
-    {},
-    {
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-
-  return response.data;
-};
+  const res = await axios.post('/auth/logout', {}, { headers: { Authorization: `Bearer ${token}` } })
+  return res.data
+}
