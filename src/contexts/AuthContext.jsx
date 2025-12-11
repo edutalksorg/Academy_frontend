@@ -24,9 +24,10 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function login(email, password) {
-    const res = await authApi.login({ email, password })
-    if (res && res.data) {
-      const payload = { token: res.data.token, user: res.data.user }
+    // use the helper that returns response data
+    const data = await authApi.loginUser(email, password)
+    if (data) {
+      const payload = { token: data.token, user: data.user }
       localStorage.setItem('auth', JSON.stringify(payload))
       setUser(payload.user)
       setToken(payload.token)
@@ -36,13 +37,13 @@ export function AuthProvider({ children }) {
   }
 
   async function register(payload) {
-    const res = await authApi.register(payload)
+    const res = await authApi.registerUser(payload)
     return res
   }
 
   async function logout() {
     try {
-      await authApi.logout()
+      await authApi.logoutUser(token)
     } catch (e) {
       console.error('Logout error', e)
     } finally {
