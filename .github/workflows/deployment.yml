@@ -1,0 +1,74 @@
+name: Deploy Frontend to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install npm packages
+        run: npm install
+
+      - name: Fix vite permission
+        run: chmod +x node_modules/.bin/vite || true
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION="v$(date +%Y%m%d%H%M%S)"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      # -----------------------
+      # Upload immutable versioned build
+      # -----------------------
+      - name: Upload versioned build
+        run: |
+          aws s3 sync dist/ s3://exam-frontend-production/${{ steps.version.outputs.version }}/
+      # -----------------------
+      # CLEAN + UPLOAD latest build (important)
+      # -----------------------
+      - name: Clear latest folder
+        run: aws s3 rm s3://exam-frontend-production/latest/ --recursive
+
+      - name: Upload new build to latest
+        run: aws s3 sync dist/ s3://exam-frontend-production/latest/
+
+      # -----------------------
+      # Update releases.json
+      # -----------------------
+      - name: Update releases.json
+        run: |
+          echo "{ \"latest\": \"${{ steps.version.outputs.version }}\" }" > releases.json
+          aws s3 cp releases.json s3://exam-frontend-production/releases.json \
+            --content-type application/json
+      # -----------------------
+      # CloudFront Invalidation
+      # -----------------------
+      - name: Invalidate CloudFront Cache
+        env:
+          CLOUDFRONT_DIST: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DIST" \
+            --paths "/*"
