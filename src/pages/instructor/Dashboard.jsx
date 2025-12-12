@@ -127,12 +127,29 @@ export default function InstructorDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${test.status === 'published'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-800'
-                    }`}>
-                    {test.status}
-                  </span>
+                  {(() => {
+                    const now = new Date();
+                    const hasEndTime = test.startTime && test.timeLimit;
+                    const endTime = hasEndTime ? new Date(new Date(test.startTime).getTime() + test.timeLimit * 60000) : null;
+                    const isEnded = endTime && now > endTime;
+
+                    if (isEnded) {
+                      return (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          ended
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${test.status === 'published'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}>
+                        {test.status}
+                      </span>
+                    );
+                  })()}
                   <Link to={`/instructor/tests/${test.id}/edit`}>
                     <Button variant="outline" size="sm">
                       Edit

@@ -67,6 +67,8 @@ export default function InstructorTestList() {
                                         <>
                                             <span className="mx-2">•</span>
                                             <span>Starts: {new Date(test.startTime).toLocaleString()}</span>
+                                            <span className="mx-2">•</span>
+                                            <span>Ends: {new Date(new Date(test.startTime).getTime() + test.timeLimit * 60000).toLocaleString()}</span>
                                         </>
                                     )}
                                 </div>
