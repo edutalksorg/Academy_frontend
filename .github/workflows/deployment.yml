@@ -45,19 +45,22 @@ jobs:
           aws s3 sync dist/ s3://exam-frontend-production/${{ steps.version.outputs.version }}/
 
       - name: Clear latest folder
-        run: aws s3 rm s3://exam-frontend-production/latest/ --recursive
+        run: |
+          aws s3 rm s3://exam-frontend-production/latest/ --recursive
 
       - name: Upload latest build
-        run: aws s3 sync dist/ s3://exam-frontend-production/latest/
+        run: |
+          aws s3 sync dist/ s3://exam-frontend-production/latest/
 
       - name: Update releases.json
         run: |
           echo "{ \"latest\": \"${{ steps.version.outputs.version }}\" }" > releases.json
-          aws s3 cp releases.json s3://exam-frontend-production/releases.json --content-type application/json
+          aws s3 cp releases.json s3://exam-frontend-production/releases.json \
+            --content-type application/json
 
       - name: Invalidate CloudFront Cache
         env:
-          CLOUDFRONT_DIST: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+          CLOUDFRONT_DIST: ${{ secrets.CLOUDFRONT_DIST }}
         run: |
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DIST" \
