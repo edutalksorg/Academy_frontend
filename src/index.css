@@ -70,3 +70,105 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Home page mobile tweaks */
+@media (max-width: 640px) {
+  /* Slightly smaller nav for compact header space */
+  .home-hero nav {
+    height: 56px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Reduce intensity and reposition the background gradient for mobile */
+  .home-hero .hero-bg {
+    opacity: 0.6;
+    background-position: top right;
+    background-size: 150%;
+  }
+
+  /* Tighter hero text on mobile */
+  .home-hero h1 {
+    font-size: 1.4rem; /* ~22.4px */
+    line-height: 1.08;
+  }
+
+  .home-hero p {
+    font-size: 0.95rem;
+  }
+
+  /* Make feature icon smaller and space-adjusted when stacked */
+  .home-hero .feature-card > div:first-child {
+    height: 2rem;
+    width: 2rem;
+  }
+
+  .home-hero .feature-card h3 {
+    font-size: 0.95rem;
+  }
+
+  /* Add comfortable side padding for the centered container */
+  .home-hero .max-w-7xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Ensure main content isn't hidden under the sticky nav */
+  .home-hero main {
+    padding-top: 3.25rem; /* 52px */
+    /* Align to top so content stacks naturally on mobile */
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  }
+
+  /* Reduce spacing between hero columns */
+  .home-hero .gap-12 {
+    gap: 1.25rem !important;
+  }
+
+  /* Reduce feature card padding for compactness */
+  .home-hero .feature-card {
+    padding: 0.75rem !important;
+  }
+
+  /* Tidy up buttons */
+  .home-hero .btn {
+    font-size: 0.95rem;
+    padding: 0.45rem 0.9rem;
+  }
+
+  /* Make hero CTA and login buttons full width and separated */
+  .home-hero a.w-full + a.w-full {
+    margin-top: 0.5rem;
+  }
+}
+
+/* Very small devices */
+@media (max-width: 420px) {
+  .home-hero h1 {
+    font-size: 1.25rem; /* ~20px */
+    line-height: 1.06;
+  }
+
+  .home-hero p {
+    font-size: 0.9rem;
+  }
+
+  .home-hero .feature-card h3 {
+    font-size: 0.9rem;
+  }
+
+  .home-hero .feature-card > div:first-child {
+    height: 1.6rem;
+    width: 1.6rem;
+  }
+
+  /* Ensure footer has some breathing room */
+  .home-hero footer {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.8rem;
+  }
+}

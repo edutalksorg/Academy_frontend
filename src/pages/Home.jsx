@@ -5,12 +5,12 @@ import Button from '../components/Button';
 
 export default function Home() {
     return (
-        <div className="h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden flex flex-col">
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-auto flex flex-col home-hero">
             {/* Navigation */}
-            <nav className="flex-none w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 h-16">
+            <nav className="sticky top-0 flex-none w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 h-16">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-                    <div className="flex justify-between items-center h-full">
-                        <div className="flex items-center gap-3">
+                    <div className="flex justify-between items-center h-full flex-wrap">
+                        <div className="flex items-center gap-3 min-w-0">
                             <div className="bg-emerald-600 p-2 rounded-lg">
                                 <GraduationCap className="h-5 w-5 text-white" />
                             </div>
@@ -18,14 +18,14 @@ export default function Home() {
                                 Academy
                             </span>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <Link to="/login">
-                                <Button variant="ghost" className="text-slate-600 hover:text-emerald-600">
+                        <div className="flex items-center gap-3 sm:gap-4 flex-wrap order-2 sm:order-none w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
+                            <Link to="/login" className="hidden sm:inline-flex w-full sm:w-auto">
+                                <Button variant="ghost" className="text-slate-600 hover:text-emerald-600 px-3 py-1 text-sm sm:px-4 sm:py-2 w-full sm:w-auto">
                                     Log in
                                 </Button>
                             </Link>
-                            <Link to="/register">
-                                <Button variant="primary" className="shadow-lg shadow-emerald-600/20">
+                            <Link to="/register" className="hidden sm:inline-flex w-full sm:w-auto">
+                                <Button variant="primary" className="shadow-lg shadow-emerald-600/20 px-3 py-1.5 text-sm sm:px-6 sm:py-2 w-full sm:w-auto">
                                     Get Started
                                 </Button>
                             </Link>
@@ -35,8 +35,10 @@ export default function Home() {
             </nav>
 
             {/* Main Content */}
-            <main className="flex-1 relative flex flex-col justify-center items-center overflow-hidden">
-                <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-slate-50 to-slate-50"></div>
+            <main className="flex-1 relative flex flex-col justify-center items-center overflow-auto pt-14 sm:pt-0">
+                <div className="absolute inset-0 -z-10 hero-bg bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-slate-50 to-slate-50"></div> 
+
+                {/* Mobile: reduce heading size via utility for better overlap prevention */} 
 
                 <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col h-full justify-center">
 
@@ -51,27 +53,27 @@ export default function Home() {
                                 New: Advanced Analytics
                             </div>
 
-                            <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
+                            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-slate-900 mb-6 leading-tight">
                                 Master Your Future with <br />
                                 <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                                     Modern Learning
                                 </span>
                             </h1>
 
-                            <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-2xl lg:max-w-none mx-auto">
+                            <p className="text-base sm:text-lg text-slate-600 mb-8 leading-relaxed max-w-2xl lg:max-w-none mx-auto">
                                 Unlock your potential with our comprehensive learning platform.
                                 Take tests, track progress, and achieve your goals.
                             </p>
 
-                            <div className="flex gap-4 justify-center lg:justify-start">
-                                <Link to="/register">
-                                    <Button size="lg" variant="primary" className="h-12 px-8 text-base shadow-xl shadow-emerald-600/20 group">
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start w-full sm:w-auto">
+                                <Link to="/register" className="w-full sm:w-auto">
+                                    <Button size="lg" variant="primary" className="w-full sm:w-auto h-12 px-6 sm:px-8 text-base shadow-xl shadow-emerald-600/20 group">
                                         Start Now
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </Button>
                                 </Link>
-                                <Link to="/login">
-                                    <Button size="lg" variant="outline" className="h-12 px-8 text-base bg-white hover:bg-slate-50">
+                                <Link to="/login" className="w-full sm:w-auto">
+                                    <Button size="lg" variant="outline" className="w-full sm:w-auto h-12 px-6 sm:px-8 text-base bg-white hover:bg-slate-50">
                                         Login
                                     </Button>
                                 </Link>
@@ -98,8 +100,8 @@ export default function Home() {
                                         desc: "Monitor your progress with detailed analytics."
                                     }
                                 ].map((feature, idx) => (
-                                    <div key={idx} className="flex items-start p-4 rounded-xl bg-white/60 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300">
-                                        <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center mr-4 flex-none">
+                                    <div key={idx} className="feature-card flex flex-col sm:flex-row items-start p-4 rounded-xl bg-white/60 backdrop-blur-sm border border-slate-100 shadow-sm hover:shadow-md hover:bg-white transition-all duration-300">
+                                        <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3 sm:mb-0 sm:mr-4 flex-none">
                                             <feature.icon className="h-5 w-5 text-emerald-600" />
                                         </div>
                                         <div>
