@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  /* Emerald Theme (Professional & Calm) */
-  --primary: #059669;
-  /* Emerald-600 */
-  --primary-dark: #047857;
-  /* Emerald-700 */
-  --primary-light: #34D399;
-  /* Emerald-400 */
+  /* Red Theme (Bold & Energetic) */
+  --primary: #DC2626;
+  /* Red-600 */
+  --primary-dark: #B91C1C;
+  /* Red-700 */
+  --primary-light: #F87171;
+  /* Red-400 */
 
   /* Neutral Tones */
   --surface: #FFFFFF;

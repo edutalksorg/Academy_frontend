@@ -15,7 +15,7 @@ export default function Home() {
                                 <GraduationCap className="h-5 w-5 text-white" />
                             </div>
                             <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-                                Academy
+                                Edutalks Assess
                             </span>
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4 flex-wrap order-2 sm:order-none w-full sm:w-auto justify-center sm:justify-end mt-2 sm:mt-0">
@@ -36,9 +36,9 @@ export default function Home() {
 
             {/* Main Content */}
             <main className="flex-1 relative flex flex-col justify-center items-center overflow-auto pt-14 sm:pt-0">
-                <div className="absolute inset-0 -z-10 hero-bg bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-slate-50 to-slate-50"></div> 
+                <div className="absolute inset-0 -z-10 hero-bg bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-slate-50 to-slate-50"></div>
 
-                {/* Mobile: reduce heading size via utility for better overlap prevention */} 
+                {/* Mobile: reduce heading size via utility for better overlap prevention */}
 
                 <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex flex-col h-full justify-center">
 
@@ -122,7 +122,7 @@ export default function Home() {
             {/* Footer */}
             <footer className="flex-none bg-white border-t border-slate-200 py-4">
                 <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-                    <p>© 2025 Academy. All rights reserved.</p>
+                    <p>© 2025 Edutalks Assess. A product of Edutalks. All rights reserved.</p>
                 </div>
             </footer>
         </div>

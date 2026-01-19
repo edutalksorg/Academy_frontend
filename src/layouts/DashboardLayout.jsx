@@ -65,19 +65,19 @@ export default function DashboardLayout({ children }) {
       {/* Sidebar */}
       <aside
         className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } fixed lg:relative lg:translate-x-0 z-30 w-72 bg-slate-900 h-full transition-transform duration-300 ease-in-out flex flex-col shadow-xl`}
+          } fixed lg:relative lg:translate-x-0 z-30 w-72 bg-gradient-to-b from-white to-red-50 h-full transition-transform duration-300 ease-in-out flex flex-col shadow-xl border-r border-gray-200`}
       >
         {/* Sidebar Header */}
-        <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
+        <div className="h-16 flex items-center px-6 bg-transparent border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="bg-emerald-600 p-2 rounded-lg">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Academy</span>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">Edutalks Assess</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden ml-auto text-slate-400 hover:text-white"
+            className="lg:hidden ml-auto text-slate-500 hover:text-slate-900"
           >
             <X className="w-6 h-6" />
           </button>
@@ -96,14 +96,14 @@ export default function DashboardLayout({ children }) {
                   to={link.to}
                   className={`group flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-200 mb-1 ${active
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    : 'text-slate-600 hover:bg-white/50 hover:text-slate-900'
                     }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+                    <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-slate-500 group-hover:text-emerald-600'}`} />
                     <span className="font-medium">{link.label}</span>
                   </div>
-                  {active && <ChevronRight className="w-4 h-4 text-emerald-200" />}
+                  {active && <ChevronRight className="w-4 h-4 text-emerald-100" />}
                 </Link>
               );
             })}
@@ -111,18 +111,18 @@ export default function DashboardLayout({ children }) {
         </nav>
 
         {/* User Profile Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800">
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-900 border border-slate-800">
+        <div className="p-4 bg-transparent border-t border-gray-200">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-white/50 border border-gray-200">
             <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
               {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-              <p className="text-xs text-slate-400 truncate capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
+              <p className="text-xs text-slate-500 truncate capitalize">{user?.role}</p>
             </div>
             <button
               onClick={logout}
-              className="p-2 text-slate-400 hover:text-red-400 transition-colors"
+              className="p-2 text-slate-400 hover:text-red-500 transition-colors"
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
@@ -141,7 +141,7 @@ export default function DashboardLayout({ children }) {
           >
             <Menu className="w-6 h-6" />
           </button>
-          <span className="font-bold text-gray-900">Academy</span>
+          <span className="font-bold text-gray-900">Edutalks Assess</span>
           <div className="w-6"></div> {/* Spacer for alignment */}
         </header>
 
