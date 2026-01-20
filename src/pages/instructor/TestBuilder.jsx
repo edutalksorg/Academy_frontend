@@ -109,6 +109,10 @@ export default function TestBuilder() {
             return;
           }
         }
+        if (!q.options.some(o => o.isCorrect)) {
+          alert(`Question ${i + 1}: Please select at least one correct option.`);
+          return;
+        }
       }
       // Ensure marks is a number
       if (isNaN(parseInt(q.marks))) {
@@ -147,12 +151,12 @@ export default function TestBuilder() {
             language: isCoding ? 'javascript' : undefined,
             // Strip explanation for compatibility with Production backend which might be older
             testCases: isCoding && q.testCases ? q.testCases.map(tc => ({
-              input: tc.input,
-              expectedOutput: tc.expectedOutput,
-              isPublic: tc.isPublic
+              input: tc.input || '',
+              expectedOutput: tc.expectedOutput || '',
+              isPublic: !!tc.isPublic
             })) : undefined
           }
-          console.log('Sending Question Payload (Edit Mode):', qPayload);
+          console.log('Sending Question Payload (JSON):', JSON.stringify(qPayload));
           await addQuestion(id, qPayload)
         }
         alert('Test updated')
@@ -172,12 +176,12 @@ export default function TestBuilder() {
             language: isCoding ? 'javascript' : undefined,
             // Strip explanation for compatibility with Production backend which might be older
             testCases: isCoding && q.testCases ? q.testCases.map(tc => ({
-              input: tc.input,
-              expectedOutput: tc.expectedOutput,
-              isPublic: tc.isPublic
+              input: tc.input || '',
+              expectedOutput: tc.expectedOutput || '',
+              isPublic: !!tc.isPublic
             })) : undefined
           }
-          console.log('Sending Question Payload:', qPayload);
+          console.log('Sending Question Payload (JSON):', JSON.stringify(qPayload));
           await addQuestion(testId, qPayload)
         }
         alert(isEdit ? 'Test updated successfully' : 'Test created successfully')
@@ -185,17 +189,12 @@ export default function TestBuilder() {
       navigate('/instructor/tests')
     } catch (err) {
       console.error('Save Error:', err);
-      // Show specific backend validation error if available
-      let errMsg = 'Failed to save test';
-      if (err.response?.data) {
-        if (typeof err.response.data === 'string') errMsg = err.response.data;
-        else if (err.response.data.message) errMsg = err.response.data.message;
-        else if (err.response.data.error) errMsg = err.response.data.error;
-        else errMsg = JSON.stringify(err.response.data);
-      } else if (err.message) {
-        errMsg = err.message;
+      // Detailed Debugging: Show full server response
+      if (err.response && err.response.data) {
+        alert('Server Error Details:\n' + JSON.stringify(err.response.data, null, 2));
+      } else {
+        alert('Error: ' + err.message);
       }
-      alert('Error: ' + errMsg);
     } finally { setSaving(false) }
   }
 
