@@ -90,12 +90,39 @@ export default function TestBuilder() {
 
   async function onSave(e) {
     e.preventDefault()
+
+    // Client-side Validation
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      if (!q.text || !q.text.trim()) {
+        alert(`Question ${i + 1} is missing the question text.`);
+        return;
+      }
+      if (q.type === 'MCQ' || !q.type) {
+        if (!q.options || q.options.length < 2) {
+          alert(`Question ${i + 1} (MCQ) must have at least 2 options.`);
+          return;
+        }
+        for (let j = 0; j < q.options.length; j++) {
+          if (!q.options[j].text || !q.options[j].text.trim()) {
+            alert(`Question ${i + 1}: Option ${j + 1} text cannot be empty.`);
+            return;
+          }
+        }
+      }
+      // Ensure marks is a number
+      if (isNaN(parseInt(q.marks))) {
+        alert(`Question ${i + 1}: Marks must be a number.`);
+        return;
+      }
+    }
+
     setSaving(true)
     try {
       const payload = {
         title,
         description,
-        timeLimit,
+        timeLimit: parseInt(timeLimit || '0', 10),
         status,
         startTime: startTime || null,
         endTime: endTime || null
@@ -159,7 +186,15 @@ export default function TestBuilder() {
     } catch (err) {
       console.error('Save Error:', err);
       // Show specific backend validation error if available
-      const errMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to save test';
+      let errMsg = 'Failed to save test';
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') errMsg = err.response.data;
+        else if (err.response.data.message) errMsg = err.response.data.message;
+        else if (err.response.data.error) errMsg = err.response.data.error;
+        else errMsg = JSON.stringify(err.response.data);
+      } else if (err.message) {
+        errMsg = err.message;
+      }
       alert('Error: ' + errMsg);
     } finally { setSaving(false) }
   }
