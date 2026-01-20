@@ -108,17 +108,24 @@ export default function TestBuilder() {
         // Only add NEW questions if they don't have an ID
         const newQuestions = questions.filter(q => !q.id)
         for (const q of newQuestions) {
+          const isCoding = q.type === 'CODING';
           const qPayload = {
             questionText: q.text,
-            marks: q.marks,
+            marks: parseInt(q.marks || '1', 10),
             type: q.type || 'MCQ',
-            options: (q.type === 'CODING') ? undefined : (q.options ? q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) : []),
-            description: q.description,
-            constraints: q.constraints,
-            codeTemplate: q.codeTemplate,
-            language: 'javascript',
-            testCases: (q.type === 'MCQ') ? undefined : q.testCases
+            options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
+            description: isCoding ? q.description : undefined,
+            constraints: isCoding ? q.constraints : undefined,
+            codeTemplate: isCoding ? q.codeTemplate : undefined,
+            language: isCoding ? 'javascript' : undefined,
+            // Strip explanation for compatibility with Production backend which might be older
+            testCases: isCoding && q.testCases ? q.testCases.map(tc => ({
+              input: tc.input,
+              expectedOutput: tc.expectedOutput,
+              isPublic: tc.isPublic
+            })) : undefined
           }
+          console.log('Sending Question Payload (Edit Mode):', qPayload);
           await addQuestion(id, qPayload)
         }
         alert('Test updated')
@@ -126,25 +133,34 @@ export default function TestBuilder() {
         const res = await createTest(payload)
         testId = res.data.id
         for (const q of questions) {
+          const isCoding = q.type === 'CODING';
           const qPayload = {
             questionText: q.text,
-            marks: q.marks,
+            marks: parseInt(q.marks || '1', 10),
             type: q.type || 'MCQ',
-            options: (q.type === 'CODING') ? undefined : (q.options ? q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) : []),
-            description: q.description,
-            constraints: q.constraints,
-            codeTemplate: q.codeTemplate,
-            language: 'javascript',
-            testCases: (q.type === 'MCQ') ? undefined : q.testCases
+            options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
+            description: isCoding ? q.description : undefined,
+            constraints: isCoding ? q.constraints : undefined,
+            codeTemplate: isCoding ? q.codeTemplate : undefined,
+            language: isCoding ? 'javascript' : undefined,
+            // Strip explanation for compatibility with Production backend which might be older
+            testCases: isCoding && q.testCases ? q.testCases.map(tc => ({
+              input: tc.input,
+              expectedOutput: tc.expectedOutput,
+              isPublic: tc.isPublic
+            })) : undefined
           }
+          console.log('Sending Question Payload:', qPayload);
           await addQuestion(testId, qPayload)
         }
-        alert('Test created')
+        alert(isEdit ? 'Test updated successfully' : 'Test created successfully')
       }
       navigate('/instructor/tests')
     } catch (err) {
-      console.error(err)
-      alert(err.message || 'Failed')
+      console.error('Save Error:', err);
+      // Show specific backend validation error if available
+      const errMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to save test';
+      alert('Error: ' + errMsg);
     } finally { setSaving(false) }
   }
 
