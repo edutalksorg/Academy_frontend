@@ -143,7 +143,9 @@ export default function TestBuilder() {
           const qPayload = {
             questionText: q.text,
             marks: parseInt(q.marks || '1', 10),
-            type: q.type || 'MCQ',
+            // Legacy Backend Support: 'type' field is not allowed for MCQs on older backends.
+            ...(isCoding ? { type: 'CODING' } : {}),
+
             options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
             description: isCoding ? q.description : undefined,
             constraints: isCoding ? q.constraints : undefined,
@@ -168,7 +170,9 @@ export default function TestBuilder() {
           const qPayload = {
             questionText: q.text,
             marks: parseInt(q.marks || '1', 10),
-            type: q.type || 'MCQ',
+            // Legacy Backend Support: 'type' field is not allowed for MCQs on older backends.
+            ...(isCoding ? { type: 'CODING' } : {}),
+
             options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
             description: isCoding ? q.description : undefined,
             constraints: isCoding ? q.constraints : undefined,
