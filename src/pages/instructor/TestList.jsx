@@ -26,6 +26,18 @@ export default function InstructorTestList() {
         }
     }
 
+    async function handleDelete(id) {
+        if (!confirm('Are you sure you want to delete this test? All questions and student attempts will be permanently removed.')) return;
+
+        try {
+            await api.delete(`/tests/${id}`);
+            setTests(prev => prev.filter(t => t.id !== id));
+        } catch (err) {
+            console.error('Failed to delete test', err);
+            alert('Failed to delete test');
+        }
+    }
+
     if (loading) return <LoadingSpinner size="lg" className="py-12" />;
 
     return (
@@ -77,6 +89,7 @@ export default function InstructorTestList() {
                                 <Link to={`/instructor/tests/${test.id}/edit`}>
                                     <Button variant="outline" size="sm">Edit</Button>
                                 </Link>
+                                <Button variant="outline" size="sm" onClick={() => handleDelete(test.id)} className="text-red-600 border-red-200 hover:bg-red-50">Delete</Button>
                             </div>
                         </Card>
                     ))}

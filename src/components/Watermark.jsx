@@ -4,12 +4,18 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Watermark() {
   const { user } = useAuth();
 
+  // Create an array of items to fill the screen
+  // 4x5 grid should cover most screens
+  const watermarks = Array.from({ length: 20 });
+
   return (
     <div className="watermark-container">
-      <div className="watermark">
-        <div>EduTalks</div>
-        <div>{user?.name || 'Student'}</div>
-      </div>
+      {watermarks.map((_, index) => (
+        <div key={index} className="watermark">
+          <div>EduTalks</div>
+          <div>{user?.name || 'Student'}</div>
+        </div>
+      ))}
       <style jsx="true">{`
         .watermark-container {
           position: fixed;
@@ -20,14 +26,16 @@ export default function Watermark() {
           pointer-events: none;
           z-index: 9999;
           overflow: hidden;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          grid-auto-rows: minmax(200px, 1fr);
+          align-items: center;
+          justify-items: center;
         }
 
         .watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%) rotate(-45deg);
-          font-size: 3rem;
+          transform: rotate(-30deg);
+          font-size: 2rem;
           font-weight: bold;
           color: rgba(0, 0, 0, 0.05);
           white-space: nowrap;

@@ -33,14 +33,16 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function login(email, password) {
-    // call API and adapt to backend response shape: axiosResponse.data === { success, data: { token, user } }
+    // call API and adapt to backend response shape: axiosResponse.data === { success, data: { token, refreshToken, user } }
     const response = await authApi.loginUser(email, password)
     if (response && response.data && response.data.data) {
       const token = response.data.data.token
+      const refreshToken = response.data.data.refreshToken
       const user = response.data.data.user
 
       // persist separately as requested
       localStorage.setItem('token', token)
+      if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('user', JSON.stringify(user))
 
       // set in-memory state
@@ -69,6 +71,7 @@ export function AuthProvider({ children }) {
     } finally {
       // Clear storage and headers
       localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
       localStorage.removeItem('user')
       setUser(null)
       setToken(null)

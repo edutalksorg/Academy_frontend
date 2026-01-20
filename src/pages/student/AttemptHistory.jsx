@@ -39,7 +39,7 @@ export default function AttemptHistory() {
 
     // Calculate percentage for each attempt
     const percentages = data.map(a => {
-      const totalMaxScore = a.Test?.Questions?.length || a.Test?.totalMarks || 1;
+      const totalMaxScore = a.Test?.Questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || a.Test?.totalMarks || 1;
       return (a.totalScore / totalMaxScore) * 100;
     });
 
@@ -76,7 +76,7 @@ export default function AttemptHistory() {
       render: (row) => {
         // Calculate total marks as sum of questions (assuming 1 mark each if totalMarks is 0 or invalid)
         // Since we updated backend to return Questions, we can use that length
-        const totalMaxScore = row.Test?.Questions?.length || row.Test?.totalMarks || 1;
+        const totalMaxScore = row.Test?.Questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || row.Test?.totalMarks || 1;
         const percentage = Math.round((row.totalScore / totalMaxScore) * 100);
 
         return (
@@ -95,7 +95,7 @@ export default function AttemptHistory() {
     {
       header: 'Performance',
       render: (row) => {
-        const totalMaxScore = row.Test?.Questions?.length || row.Test?.totalMarks || 1;
+        const totalMaxScore = row.Test?.Questions?.reduce((sum, q) => sum + (q.marks || 1), 0) || row.Test?.totalMarks || 1;
         const percentage = Math.round((row.totalScore / totalMaxScore) * 100);
 
         return (

@@ -5,9 +5,10 @@ import Button from '../../components/Button';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { ConfirmModal } from '../../components/Modal';
 import Watermark from '../../components/Watermark';
+import CodingQuestionRunner from '../../components/CodingQuestionRunner';
 import { getTest } from '../../api/tests.api';
 import { startTest, submitAttempt } from '../../api/attempts.api';
- 
+
 export default function TestRunner() {
   const { id } = useParams();
   const [test, setTest] = useState(null);
@@ -19,22 +20,23 @@ export default function TestRunner() {
   const [result, setResult] = useState(null);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
+  const [activeQIndex, setActiveQIndex] = useState(0); // Navigation State
   const navigate = useNavigate();
- 
+
   useEffect(() => {
     console.log('showWarningModal state changed:', showWarningModal);
   }, [showWarningModal]);
- 
+
   // Anti-screenshot and anti-cheat measures
   useEffect(() => {
     if (!attempt) return; // Only apply during active test
- 
+
     // Disable right-click
     const handleContextMenu = (e) => {
       e.preventDefault();
       return false;
     };
- 
+
     // Disable keyboard shortcuts for screenshots and copying
     const handleKeyDown = (e) => {
       // Prevent Print Screen, Ctrl+S, Ctrl+P, Ctrl+C, etc.
@@ -45,16 +47,16 @@ export default function TestRunner() {
       ) {
         e.preventDefault();
         alert('⚠️ Screenshots and copying are disabled during the test.\n\nThis action has been logged and will be reported to your instructor.');
- 
+
         // Clear clipboard if possible
         if (navigator.clipboard) {
           navigator.clipboard.writeText('Screenshot attempt detected during test').catch(() => { });
         }
- 
+
         return false;
       }
     };
- 
+
     // Additional Print Screen detection via keyup
     const handleKeyUp = (e) => {
       if (e.key === 'PrintScreen') {
@@ -65,14 +67,14 @@ export default function TestRunner() {
         }
       }
     };
- 
+
     // Detect tab/window switching
     const handleVisibilityChange = () => {
       console.log('Visibility changed. Hidden:', document.hidden);
- 
+
       if (document.hidden) {
         console.warn('⚠️ Student switched tabs/windows during test');
- 
+
         // Record tab switch in backend
         if (attempt?.id) {
           import('../../api/attempts.api').then(({ recordTabSwitch }) => {
@@ -85,16 +87,16 @@ export default function TestRunner() {
         setShowWarningModal(true);
       }
     };
- 
+
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
     document.addEventListener('visibilitychange', handleVisibilityChange);
- 
+
     // Disable text selection
     document.body.style.userSelect = 'none';
     document.body.style.webkitUserSelect = 'none';
- 
+
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
@@ -104,17 +106,17 @@ export default function TestRunner() {
       document.body.style.webkitUserSelect = '';
     };
   }, [attempt]);
- 
+
   // Fullscreen monitoring
   useEffect(() => {
     if (!attempt) return; // Only monitor during active test
- 
+
     const handleFullscreenChange = () => {
       // Check if we exited fullscreen
       if (!document.fullscreenElement && attempt && !result) {
         console.warn('⚠️ Student exited fullscreen during test');
         setShowFullscreenWarning(true);
- 
+
         // Record fullscreen exit in backend (similar to tab switch)
         if (attempt?.id) {
           import('../../api/attempts.api').then(({ recordTabSwitch }) => {
@@ -123,9 +125,9 @@ export default function TestRunner() {
         }
       }
     };
- 
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
- 
+
     // Add CSS to hide sidebar in fullscreen mode
     const style = document.createElement('style');
     style.id = 'fullscreen-sidebar-hide';
@@ -139,7 +141,7 @@ export default function TestRunner() {
       }
     `;
     document.head.appendChild(style);
- 
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       // Remove the style tag
@@ -149,15 +151,15 @@ export default function TestRunner() {
       }
     };
   }, [attempt, result]);
- 
+
   useEffect(() => {
     loadTest();
   }, [id]);
- 
+
   // Timer effect
   useEffect(() => {
     if (!attempt || !timeLeft) return;
- 
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -168,10 +170,10 @@ export default function TestRunner() {
         return prev - 1;
       });
     }, 1000);
- 
+
     return () => clearInterval(timer);
   }, [attempt, timeLeft]);
- 
+
   async function loadTest() {
     try {
       const res = await getTest(id);
@@ -180,7 +182,7 @@ export default function TestRunner() {
       console.error('Failed to load test:', err);
     }
   }
- 
+
   // Fisher-Yates shuffle algorithm
   function shuffleArray(array) {
     const shuffled = [...array];
@@ -190,19 +192,19 @@ export default function TestRunner() {
     }
     return shuffled;
   }
- 
+
   async function onStart() {
     try {
       const res = await startTest(id);
       setAttempt(res.data);
       setTimeLeft(test.timeLimit * 60); // Convert minutes to seconds
- 
+
       // Shuffle questions for this student
       if (test.Questions && test.Questions.length > 0) {
         const shuffledQuestions = shuffleArray(test.Questions);
         setTest({ ...test, Questions: shuffledQuestions });
       }
- 
+
       // Request fullscreen mode
       try {
         await document.documentElement.requestFullscreen();
@@ -214,27 +216,85 @@ export default function TestRunner() {
       alert(err?.response?.data?.message || 'Failed to start test');
     }
   }
- 
+
   function selectOption(qId, optionId) {
     setAnswers((prev) => ({ ...prev, [qId]: optionId }));
   }
- 
+
   async function handleAutoSubmit() {
-    await handleSubmit();
+    await handleSubmit(true);
   }
- 
-  async function handleSubmit() {
+
+  async function handleSubmit(isAutoSubmit = false) {
+    // Validate coding questions
+    // Find coding questions that have been touched (have code) but not executed
+    const unexecutedQuestions = [];
+    if (test && test.Questions) {
+      test.Questions.forEach(q => {
+        if (q.type === 'CODING') {
+          const ans = answers[q.id];
+          // Check if answer exists and has code content
+          // ans could be string (legacy) or object {code, language, executed}
+          let code = '';
+          let executed = false;
+
+          if (typeof ans === 'string') {
+            code = ans;
+            executed = true; // Legacy: assume true or we can't enforce
+          } else if (typeof ans === 'object' && ans !== null) {
+            code = ans.code || '';
+            executed = ans.executed === true;
+          }
+
+          // If there is significant code but not executed
+          if (code.trim().length > 20 && !executed) { // >20 to ignore just template or tiny edits
+            unexecutedQuestions.push(q.id);
+          }
+        }
+      });
+    }
+
+    if (!isAutoSubmit && unexecutedQuestions.length > 0) {
+      alert('You have coding questions with unverified code. Please "Run Code" for all your solutions before submitting.');
+      setShowSubmitConfirm(false);
+      return;
+    }
+
     setSubmitting(true);
-    const payload = Object.keys(answers).map((qid) => ({
-      questionId: parseInt(qid, 10),
-      selectedOptionId: answers[qid],
-    }));
- 
+    const payload = Object.keys(answers).map((qid) => {
+      const val = answers[qid];
+      // Check if val is object (new coding format) or string (old coding) or number (MCQ)
+      const isObject = typeof val === 'object' && val !== null;
+      const isCode = isObject || typeof val === 'string';
+
+      let answerText = null;
+      let language = null;
+      let selectedOptionId = null;
+
+      if (isObject) {
+        answerText = val.code;
+        language = val.language;
+      } else if (typeof val === 'string') {
+        answerText = val;
+        // Default language if string (legacy)
+        language = 'javascript';
+      } else {
+        selectedOptionId = val;
+      }
+
+      return {
+        questionId: parseInt(qid, 10),
+        selectedOptionId,
+        answerText,
+        language // Pass language to backend
+      };
+    });
+
     try {
       const res = await submitAttempt(attempt.id, payload);
       setResult(res.data);
       setShowSubmitConfirm(false);
- 
+
       // Exit fullscreen when test is submitted
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(err => console.warn('Failed to exit fullscreen:', err));
@@ -245,17 +305,17 @@ export default function TestRunner() {
       setSubmitting(false);
     }
   }
- 
+
   function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
- 
+
   if (!test) {
     return <LoadingSpinner size="lg" className="py-12" />;
   }
- 
+
   // Show result screen
   if (result) {
     // Calculate percentage score
@@ -264,7 +324,7 @@ export default function TestRunner() {
     const scorePercentage = totalQuestions > 0
       ? Math.round((result.correctAnswers / totalQuestions) * 100)
       : 0;
- 
+
     return (
       <div className="space-y-6">
         <Card>
@@ -274,12 +334,12 @@ export default function TestRunner() {
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Test Completed!</h2>
             <p className="text-gray-600 mb-6">Here are your results</p>
- 
+
             <div className="inline-block bg-blue-50 rounded-lg p-6 mb-6">
               <div className="text-5xl font-bold text-blue-600 mb-2">{scorePercentage}%</div>
               <div className="text-gray-700">Your Score</div>
             </div>
- 
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-6">
               <div className="bg-green-50 rounded-lg p-4">
                 <div className="text-2xl font-bold text-green-600">{result.correctAnswers || 0}</div>
@@ -300,7 +360,7 @@ export default function TestRunner() {
                 <div className="text-sm text-gray-600">Tab Switches</div>
               </div>
             </div>
- 
+
             <div className="flex gap-3 justify-center">
               <Button variant="primary" onClick={() => navigate('/student/attempts')}>
                 View All Results
@@ -311,7 +371,7 @@ export default function TestRunner() {
             </div>
           </div>
         </Card>
- 
+
         {/* Detailed Question Review */}
         {result.questionResults && result.questionResults.length > 0 && (
           <Card>
@@ -334,12 +394,12 @@ export default function TestRunner() {
                       </h4>
                     </div>
                   </div>
- 
+
                   <div className="ml-11 space-y-2">
                     {qResult.options.map((option) => {
                       const isSelected = option.id === qResult.selectedOptionId;
                       const isCorrectOption = option.id === qResult.correctOptionId;
- 
+
                       return (
                         <div
                           key={option.id}
@@ -377,7 +437,7 @@ export default function TestRunner() {
       </div>
     );
   }
- 
+
   // Show test start screen
   if (!attempt) {
     return (
@@ -385,7 +445,7 @@ export default function TestRunner() {
         <Card>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{test.title}</h1>
           <p className="text-gray-600 mb-6">{test.description || 'No description provided'}</p>
- 
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="text-2xl font-bold text-blue-600">{test.Questions?.length || 0}</div>
@@ -400,7 +460,7 @@ export default function TestRunner() {
               <div className="text-sm text-gray-600">Total Marks</div>
             </div>
           </div>
- 
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <h3 className="font-semibold text-yellow-900 mb-2">Instructions:</h3>
             <ul className="list-disc list-inside text-sm text-yellow-800 space-y-1">
@@ -410,7 +470,7 @@ export default function TestRunner() {
               <li>Make sure to answer all questions before submitting</li>
             </ul>
           </div>
- 
+
           <Button variant="primary" size="lg" fullWidth onClick={onStart}>
             Start Test Now
           </Button>
@@ -418,16 +478,42 @@ export default function TestRunner() {
       </div>
     );
   }
- 
+
   // Show test questions
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = test.Questions?.length || 0;
- 
+
+  // Check for unexecuted coding questions to disable submit
+  let hasUnexecutedCode = false;
+  let unexecutedCount = 0;
+  if (test && test.Questions) {
+    test.Questions.forEach(q => {
+      if (q.type === 'CODING') {
+        const ans = answers[q.id];
+        let code = '';
+        let executed = false;
+
+        if (typeof ans === 'string') {
+          code = ans;
+          executed = true;
+        } else if (typeof ans === 'object' && ans !== null) {
+          code = ans.code || '';
+          executed = ans.executed === true;
+        }
+
+        if (code.trim().length > 20 && !executed) {
+          hasUnexecutedCode = true;
+          unexecutedCount++;
+        }
+      }
+    });
+  }
+
   return (
     <div className="space-y-6">
       {/* Watermark for anti-cheating */}
       <Watermark />
- 
+
       {/* Timer and Progress Header */}
       <Card>
         <div className="flex justify-between items-center">
@@ -453,43 +539,124 @@ export default function TestRunner() {
           </div>
         </div>
       </Card>
- 
+
       {/* Questions */}
-      <div className="space-y-4">
-        {(test.Questions || []).map((q, index) => (
-          <Card key={q.id}>
-            <div className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
-                {index + 1}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-medium text-gray-900 mb-3">{q.text}</h3>
-                <div className="space-y-2">
-                  {(q.Options || []).map((opt) => (
-                    <label
-                      key={opt.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${answers[q.id] === opt.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                    >
-                      <input
-                        type="radio"
-                        name={`q-${q.id}`}
-                        checked={answers[q.id] === opt.id}
-                        onChange={() => selectOption(q.id, opt.id)}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-gray-700">{opt.text}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
+      {/* Question Navigation Palette */}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {test.Questions.map((q, idx) => {
+            const isCurrent = idx === activeQIndex;
+            const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
+            const buttonClass = isCurrent
+              ? 'bg-blue-600 text-white ring-2 ring-blue-300 shadow-sm'
+              : isAnswered
+                ? 'bg-green-100 text-green-700 border border-green-300 hover:bg-green-200'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'; // White bg for unanswered to pop against gray page
+
+            return (
+              <button
+                key={q.id}
+                onClick={() => setActiveQIndex(idx)}
+                className={`w-10 h-10 rounded-lg font-bold text-sm transition-all flex items-center justify-center ${buttonClass}`}
+              >
+                {idx + 1}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-2 text-xs text-gray-500 flex gap-4 px-1">
+          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-600 rounded shadow-sm"></span> Current</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 border border-green-300 rounded"></span> Answered</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 bg-white border border-gray-200 rounded"></span> Unanswered</span>
+        </div>
       </div>
- 
+
+      {/* Active Question Display */}
+      <div className="space-y-4">
+        {test.Questions[activeQIndex] && (
+          <div key={test.Questions[activeQIndex].id}>
+            {test.Questions[activeQIndex].type === 'CODING' ? (
+              <div className="w-full">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">
+                      {activeQIndex + 1}
+                    </div>
+                    <span className="font-semibold text-gray-700">Coding Question</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Marks: {test.Questions[activeQIndex].marks}
+                  </div>
+                </div>
+                <CodingQuestionRunner
+                  question={test.Questions[activeQIndex]}
+                  value={answers[test.Questions[activeQIndex].id]}
+                  onChange={(val) => selectOption(test.Questions[activeQIndex].id, val)}
+                />
+              </div>
+            ) : (
+              <Card>
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">
+                    {activeQIndex + 1}
+                  </div>
+                  <div className="flex-1 w-full">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-medium text-gray-900 text-lg">{test.Questions[activeQIndex].text}</h3>
+                      <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {test.Questions[activeQIndex].marks} Marks
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {(test.Questions[activeQIndex].Options || []).map((opt) => (
+                        <label
+                          key={opt.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${answers[test.Questions[activeQIndex].id] === opt.id
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                        >
+                          <input
+                            type="radio"
+                            name={`q-${test.Questions[activeQIndex].id}`}
+                            checked={answers[test.Questions[activeQIndex].id] === opt.id}
+                            onChange={() => selectOption(test.Questions[activeQIndex].id, opt.id)}
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-gray-700">{opt.text}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Footer */}
+      <div className="flex justify-between items-center mt-6">
+        <Button
+          variant="secondary"
+          onClick={() => setActiveQIndex(prev => Math.max(0, prev - 1))}
+          disabled={activeQIndex === 0}
+        >
+          Previous Question
+        </Button>
+
+        {activeQIndex < (test.Questions?.length || 0) - 1 ? (
+          <Button
+            variant="primary"
+            onClick={() => setActiveQIndex(prev => Math.min((test.Questions?.length || 0) - 1, prev + 1))}
+          >
+            Next Question
+          </Button>
+        ) : (
+          <div className="w-32"></div> // Spacer to keep layout balanced
+        )}
+      </div>
+
       {/* Submit Button */}
       <Card>
         <div className="flex justify-between items-center">
@@ -504,17 +671,25 @@ export default function TestRunner() {
               )}
             </p>
           </div>
-          <Button
-            variant="success"
-            size="lg"
-            onClick={() => setShowSubmitConfirm(true)}
-            disabled={submitting}
-          >
-            Submit Test
-          </Button>
+          <div className="flex items-center">
+            {hasUnexecutedCode && (
+              <span className="text-red-500 text-sm mr-4">
+                ⚠ Please run code for {unexecutedCount} question(s)
+              </span>
+            )}
+            <Button
+              variant="success"
+              size="lg"
+              onClick={() => setShowSubmitConfirm(true)}
+              disabled={submitting || hasUnexecutedCode}
+              title={hasUnexecutedCode ? "Run your code to enable submission" : "Submit Test"}
+            >
+              Submit Test
+            </Button>
+          </div>
         </div>
       </Card>
- 
+
       {/* Submit Confirmation Modal */}
       <ConfirmModal
         isOpen={showSubmitConfirm}
@@ -536,13 +711,13 @@ export default function TestRunner() {
               </div>
               <h3 className="text-xl font-bold text-gray-900">Warning: Tab Switch Detected</h3>
             </div>
- 
+
             <p className="text-gray-700 mb-6">
               You switched away from the test window. This action has been recorded and will be reported to your instructor.
               <br /><br />
               <strong>Please stay on this page until you submit the test.</strong>
             </p>
- 
+
             <Button
               variant="primary"
               fullWidth
@@ -554,7 +729,7 @@ export default function TestRunner() {
           </div>
         </div>
       )}
- 
+
       {/* Fullscreen Exit Warning Modal */}
       {showFullscreenWarning && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50">
@@ -565,13 +740,13 @@ export default function TestRunner() {
               </div>
               <h3 className="text-xl font-bold text-gray-900">Warning: Fullscreen Exited</h3>
             </div>
- 
+
             <p className="text-gray-700 mb-6">
               You have exited fullscreen mode. This action has been recorded and will be reported to your instructor.
               <br /><br />
               <strong>Please stay in fullscreen mode until you submit the test.</strong>
             </p>
- 
+
             <div className="space-y-2">
               <Button
                 variant="primary"
@@ -588,13 +763,7 @@ export default function TestRunner() {
               >
                 Return to Fullscreen
               </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setShowFullscreenWarning(false)}
-              >
-                Continue Without Fullscreen
-              </Button>
+
             </div>
           </div>
         </div>

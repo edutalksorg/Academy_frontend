@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { createTest, addQuestion, getTest, updateTest } from '../../api/tests.api'
+import { createTest, addQuestion, getTest, updateTest, deleteQuestion } from '../../api/tests.api'
 import QuestionEditor from '../../components/QuestionEditor'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -54,9 +54,39 @@ export default function TestBuilder() {
     }
   }
 
-  function addQuestionBlock() { setQuestions(prev => [...prev, { text: '', marks: 1, options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }] }]) }
+  function addQuestionBlock() {
+    setQuestions(prev => [...prev, {
+      text: '',
+      marks: 1,
+      type: 'MCQ',
+      options: [{ text: '', isCorrect: false }, { text: '', isCorrect: false }],
+      description: '',
+      constraints: '',
+      codeTemplate: '// Example assuming standard input (stdin)\nconst fs = require("fs");\nconst input = fs.readFileSync(0, "utf-8").trim().split("\\n");\n\n// Your logic here\n// console.log(result);\n',
+      testCases: [{ input: '', expectedOutput: '', isPublic: true }]
+    }])
+  }
   function updateQuestion(idx, q) { setQuestions(prev => prev.map((p, i) => i === idx ? q : p)) }
-  function removeQuestion(idx) { setQuestions(prev => prev.filter((_, i) => i !== idx)) }
+
+
+  // ...
+
+  function updateQuestion(idx, q) { setQuestions(prev => prev.map((p, i) => i === idx ? q : p)) }
+
+  async function removeQuestion(idx) {
+    const q = questions[idx];
+    if (q.id) {
+      if (!confirm('Are you sure you want to delete this existing question? This cannot be undone.')) return;
+      try {
+        await deleteQuestion(q.id);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to delete question');
+        return;
+      }
+    }
+    setQuestions(prev => prev.filter((_, i) => i !== idx));
+  }
 
   async function onSave(e) {
     e.preventDefault()
@@ -78,7 +108,17 @@ export default function TestBuilder() {
         // Only add NEW questions if they don't have an ID
         const newQuestions = questions.filter(q => !q.id)
         for (const q of newQuestions) {
-          const qPayload = { questionText: q.text, marks: q.marks, options: q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) }
+          const qPayload = {
+            questionText: q.text,
+            marks: q.marks,
+            type: q.type || 'MCQ',
+            options: (q.type === 'CODING') ? undefined : (q.options ? q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) : []),
+            description: q.description,
+            constraints: q.constraints,
+            codeTemplate: q.codeTemplate,
+            language: 'javascript',
+            testCases: (q.type === 'MCQ') ? undefined : q.testCases
+          }
           await addQuestion(id, qPayload)
         }
         alert('Test updated')
@@ -86,7 +126,17 @@ export default function TestBuilder() {
         const res = await createTest(payload)
         testId = res.data.id
         for (const q of questions) {
-          const qPayload = { questionText: q.text, marks: q.marks, options: q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) }
+          const qPayload = {
+            questionText: q.text,
+            marks: q.marks,
+            type: q.type || 'MCQ',
+            options: (q.type === 'CODING') ? undefined : (q.options ? q.options.map(o => ({ text: o.text, isCorrect: !!o.isCorrect })) : []),
+            description: q.description,
+            constraints: q.constraints,
+            codeTemplate: q.codeTemplate,
+            language: 'javascript',
+            testCases: (q.type === 'MCQ') ? undefined : q.testCases
+          }
           await addQuestion(testId, qPayload)
         }
         alert('Test created')
