@@ -146,7 +146,7 @@ export default function TestBuilder() {
             // Legacy Backend Support: 'type' field is not allowed for MCQs on older backends.
             ...(isCoding ? { type: 'CODING' } : {}),
 
-            options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
+            options: isCoding ? [] : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
             description: isCoding ? q.description : undefined,
             constraints: isCoding ? q.constraints : undefined,
             codeTemplate: isCoding ? q.codeTemplate : undefined,
@@ -173,7 +173,7 @@ export default function TestBuilder() {
             // Legacy Backend Support: 'type' field is not allowed for MCQs on older backends.
             ...(isCoding ? { type: 'CODING' } : {}),
 
-            options: isCoding ? undefined : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
+            options: isCoding ? [] : (q.options ? q.options.map(o => ({ text: o.text || '', isCorrect: !!o.isCorrect })) : []),
             description: isCoding ? q.description : undefined,
             constraints: isCoding ? q.constraints : undefined,
             codeTemplate: isCoding ? q.codeTemplate : undefined,
