@@ -6,6 +6,7 @@ export default function Button({
     size = 'md',
     onClick,
     type = 'button',
+
     disabled = false,
     loading = false,
     className = '',
