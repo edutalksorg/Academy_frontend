@@ -310,6 +310,7 @@ export default function CodingQuestionRunner({ question, value, onChange }) {
                             fontSize: 14,
                             backgroundColor: '#111827', // Tailwind gray-900
                             minHeight: '100%',
+                            color: '#f8f8f2', // Ensure text is visible
                         }}
                         textareaClassName="focus:outline-none"
                     />

@@ -226,39 +226,7 @@ export default function TestRunner() {
   }
 
   async function handleSubmit(isAutoSubmit = false) {
-    // Validate coding questions
-    // Find coding questions that have been touched (have code) but not executed
-    const unexecutedQuestions = [];
-    if (test && test.Questions) {
-      test.Questions.forEach(q => {
-        if (q.type === 'CODING') {
-          const ans = answers[q.id];
-          // Check if answer exists and has code content
-          // ans could be string (legacy) or object {code, language, executed}
-          let code = '';
-          let executed = false;
 
-          if (typeof ans === 'string') {
-            code = ans;
-            executed = true; // Legacy: assume true or we can't enforce
-          } else if (typeof ans === 'object' && ans !== null) {
-            code = ans.code || '';
-            executed = ans.executed === true;
-          }
-
-          // If there is significant code but not executed
-          if (code.trim().length > 20 && !executed) { // >20 to ignore just template or tiny edits
-            unexecutedQuestions.push(q.id);
-          }
-        }
-      });
-    }
-
-    if (!isAutoSubmit && unexecutedQuestions.length > 0) {
-      alert('You have coding questions with unverified code. Please "Run Code" for all your solutions before submitting.');
-      setShowSubmitConfirm(false);
-      return;
-    }
 
     setSubmitting(true);
     const payload = Object.keys(answers).map((qid) => {
@@ -483,31 +451,7 @@ export default function TestRunner() {
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = test.Questions?.length || 0;
 
-  // Check for unexecuted coding questions to disable submit
-  let hasUnexecutedCode = false;
-  let unexecutedCount = 0;
-  if (test && test.Questions) {
-    test.Questions.forEach(q => {
-      if (q.type === 'CODING') {
-        const ans = answers[q.id];
-        let code = '';
-        let executed = false;
 
-        if (typeof ans === 'string') {
-          code = ans;
-          executed = true;
-        } else if (typeof ans === 'object' && ans !== null) {
-          code = ans.code || '';
-          executed = ans.executed === true;
-        }
-
-        if (code.trim().length > 20 && !executed) {
-          hasUnexecutedCode = true;
-          unexecutedCount++;
-        }
-      }
-    });
-  }
 
   return (
     <div className="space-y-6">
@@ -672,17 +616,13 @@ export default function TestRunner() {
             </p>
           </div>
           <div className="flex items-center">
-            {hasUnexecutedCode && (
-              <span className="text-red-500 text-sm mr-4">
-                ⚠ Please run code for {unexecutedCount} question(s)
-              </span>
-            )}
+
             <Button
               variant="success"
               size="lg"
               onClick={() => setShowSubmitConfirm(true)}
-              disabled={submitting || hasUnexecutedCode}
-              title={hasUnexecutedCode ? "Run your code to enable submission" : "Submit Test"}
+              disabled={submitting}
+              title="Submit Test"
             >
               Submit Test
             </Button>
